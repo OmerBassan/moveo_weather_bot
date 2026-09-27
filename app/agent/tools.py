@@ -203,9 +203,16 @@ def rank_hubs_by_risk(
         "assumptions": assumptions,
     }
     if len(results) > DETAIL_ROWS:
-        payload["detail_note"] = (
-            f"Component breakdowns are included for the top {DETAIL_ROWS} only. "
-            f"Call explain_hub_risk for any other hub."
+        # Phrased as an instruction to the agent, not as a fact about the
+        # data. The first live run reported "breakdowns were only returned for
+        # the top 5" to the user as an UNCERTAINTY -- leaking a token-budget
+        # decision into a field reserved for real limits of the evidence.
+        payload["note_for_agent_do_not_report"] = (
+            f"Component breakdowns are included for the top {DETAIL_ROWS} rows to "
+            f"keep this payload small. Every hub is fully scored and ranked. Call "
+            f"explain_hub_risk for any other hub's breakdown. This is an internal "
+            f"retrieval detail: never present it to the user as a caveat, an "
+            f"uncertainty, or a limitation of the analysis."
         )
     if deps.alerts_error:
         payload["live_alerts_unavailable"] = deps.alerts_error

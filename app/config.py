@@ -16,8 +16,17 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 # Repository root: this file is app/config.py, so parents[1] is the root.
 ROOT = Path(__file__).resolve().parents[1]
+
+# Loaded here because this module is the one construction site for
+# configuration, and every entry point (API, UI, scripts, evals) imports it.
+# `override=False` so a real environment variable always beats the file --
+# a deployed container sets its own secrets and must not be overridden by a
+# .env that happened to be copied in.
+load_dotenv(ROOT / ".env", override=False)
 
 
 def _env_str(name: str, default: str) -> str:

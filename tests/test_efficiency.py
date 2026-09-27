@@ -81,8 +81,11 @@ class TestPayloadBudgets:
 
 class TestDeterminism:
     def test_temperature_is_zero(self) -> None:
-        """A decision-support tool that answers the same question two ways
-        cannot be trusted, and a sampling eval measures noise."""
+        """Set for models that honour it. NOTE: claude-sonnet-5 does not --
+        it rejects sampling parameters and pydantic-ai warns that they are
+        ignored. Determinism of the ANSWER therefore does not come from here;
+        it comes from the scoring engine, which the model never touches. This
+        test pins the setting, not a guarantee about the prose."""
         assert model_settings()["temperature"] == 0.0
 
     def test_caching_is_enabled_for_every_fixed_prefix(self) -> None:

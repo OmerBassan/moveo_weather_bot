@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import logging
 import os
+from datetime import date
 from dataclasses import dataclass
 from typing import Any
 
@@ -55,11 +56,20 @@ HISTORY_TURNS = int(os.environ.get("WRA_HISTORY_TURNS", "3"))
 def model_settings() -> AnthropicModelSettings:
     """Determinism, caching and bounds, in one place.
 
-    temperature=0      the same question must produce the same answer. This is
-                       a decision-support tool: an analyst who asks twice and
-                       gets two rankings cannot trust either. It also makes the
-                       eval suite mean something -- a failure is a real
-                       failure, not sampling noise.
+    temperature=0      Set, but VERIFY BEFORE RELYING ON IT: claude-sonnet-5
+                       rejects sampling parameters outright (pydantic-ai warns
+                       "Sampling parameters ['temperature'] are not supported
+                       by 'claude-sonnet-5'. These settings will be ignored").
+                       It is kept because it takes effect on models that do
+                       honour it, and costs nothing on models that do not.
+
+                       So prose is NOT bit-reproducible on this model. What IS
+                       reproducible is everything that matters for a decision:
+                       the scores, the ranking and the components all come from
+                       the deterministic engine, which never sees the model. Two
+                       runs can word an answer differently; they cannot rank
+                       hubs differently. The eval suite is written against the
+                       structured fields for exactly this reason.
 
     anthropic_effort   'low'. The model's job is intent + tool selection +
                        short synthesis over structured results. The reasoning
@@ -125,6 +135,34 @@ def build_agent(model: str | None = None) -> Agent[Deps, AgentDraft]:
         model_settings=model_settings(),
         retries=2,
     )
+
+    @agent.instructions
+    def temporal_context() -> str:
+        """Today's date, and what the record actually covers.
+
+        WITHOUT THIS THE MODEL GUESSES THE YEAR. Asked "what percentage of
+        days in Denver LAST YEAR had snowfall?", the first live run answered
+        for 2024 -- a model has no clock, so "last year" resolved against its
+        training data rather than against today. The answer was internally
+        consistent and quietly about the wrong year, which is the worst shape
+        a wrong answer can take.
+
+        Separate from a static prompt because it changes every day, and a
+        hardcoded date would be wrong tomorrow.
+        """
+        from app.scoring.climatology import load_history
+
+        window = load_history()["window"]
+        today = date.today()
+        return (
+            f"TODAY'S DATE is {today.isoformat()}. The current year is "
+            f"{today.year}, so 'last year' means {today.year - 1} and "
+            f"'this year' means {today.year}.\n"
+            f"The historical record available to you covers {window['start']} "
+            f"to {window['end']} inclusive. A question about a period outside "
+            f"that range cannot be answered from this data -- say so rather "
+            f"than silently answering about a year you do have."
+        )
 
     @agent.tool
     def list_hubs(ctx: RunContext[Deps], region: str | None = None) -> dict[str, Any]:
@@ -287,7 +325,7 @@ def run_turn(
         message_history=trim_history(history),
         usage_limits=usage_limits(),
     )
-    usage = result.usage()
+    usage = result.usage
     return TurnResult(
         response=assemble(result.output, deps),
         messages=list(result.all_messages()),
