@@ -1,0 +1,154 @@
+# Deterministic risk weights and thresholds.
+#
+# THESE ARE PROTOTYPE ASSUMPTIONS, NOT MEASURED COEFFICIENTS. Nothing here was
+# fitted against observed hub downtime, because no such dataset was available
+# for this exercise. They encode a defensible ordering of concerns -- a hub's
+# structural exposure matters more than this week's weather, but this week's
+# weather is not irrelevant -- and they are in a config file precisely so a
+# reviewer can disagree with a number and re-run rather than read code.
+#
+# Every response this system produces states that these are assumptions.
+
+bands:
+  # Score -> label. Boundaries are inclusive lower, exclusive upper.
+  - {max: 20, label: "Very Low"}
+  - {max: 40, label: "Low"}
+  - {max: 60, label: "Moderate"}
+  - {max: 80, label: "High"}
+  - {max: 101, label: "Very High"}
+
+hazards:
+
+  winter:
+    label: "Winter weather disruption"
+    weights:
+      baseline: 0.50    # FEMA NRI structural exposure
+      historical: 0.30  # how often this hub actually gets disruptive snow
+      current: 0.20     # what the NWS is warning about right now
+    # Two NRI hazards apply. MAX, not mean: a hub shuts down from whichever
+    # one hits it, and averaging a high snow score against a low cold score
+    # describes a hub that experiences neither. The rejected alternative
+    # (mean) would rank a consistently-cold, low-snow hub below a hub that
+    # gets buried twice a winter, which is backwards for disruption.
+    baseline_hazards: [winter_weather, cold_wave]
+    baseline_combine: max
+    # Days per year at or above this fresh-snowfall total, scaled so
+    # `anchor_days_per_year` maps to 100.
+    historical_metric: snow_disruption_days
+    anchor_days_per_year: 20
+    # NWS event types that count as this hazard being active right now.
+    alert_events:
+      - Winter Storm Warning
+      - Winter Storm Watch
+      - Winter Weather Advisory
+      - Blizzard Warning
+      - Blizzard Watch
+      - Ice Storm Warning
+      - Snow Squall Warning
+      - Extreme Cold Warning
+      - Extreme Cold Watch
+      - Cold Weather Advisory
+      - Freeze Warning
+      - Wind Chill Warning
+      - Wind Chill Advisory
+
+  hurricane:
+    label: "Hurricane and tropical system exposure"
+    # DELIBERATELY TWO COMPONENTS, NOT THREE. This hazard has no historical
+    # component, and that is a methodology decision rather than missing data.
+    #
+    # Measured, with a 58 mph gust threshold over the five-year window:
+    #     Miami 0.2 damaging-wind-days/yr, New York 1.2, Boston 1.0
+    # which ranked New York and Boston ABOVE Miami and Houston for hurricane
+    # exposure. Two independent reasons that number is meaningless here:
+    #
+    #   1. Five years cannot characterise hurricane frequency. Hurricanes are
+    #      decadal events; a hub that happened not to be hit since 2021 reads
+    #      as low exposure.
+    #   2. A 9 km reanalysis cell does not resolve eyewall gusts. Peak wind is
+    #      the variable this data smooths worst, so the proxy under-reports
+    #      exactly the events it is meant to count.
+    #
+    # Worse, the metric measures the wrong thing: gusts above 58 mph are
+    # mostly extratropical in the Northeast, so the component was ranking
+    # nor'easter frequency and calling it hurricane exposure.
+    #
+    # FEMA's NRI hurricane index already encodes multi-decade tropical
+    # history, which is the right instrument for this. Rejected alternatives:
+    # lowering the gust threshold (still measures extratropical wind), and
+    # keeping the component with a caveat (a wrong number with a footnote is
+    # still a wrong number in the ranking).
+    weights:
+      baseline: 0.60
+      current: 0.40    # highest current weighting of any hazard: a named
+                       # storm inbound is the one case where today should
+                       # dominate the long-run baseline
+    baseline_hazards: [hurricane]
+    baseline_combine: max
+    historical_metric: null
+    methodology_note: >-
+      Hurricane exposure is scored from FEMA's multi-decade hurricane index and
+      current NWS alerts only. A five-year reanalysis window cannot measure
+      hurricane frequency, and a 9 km grid cell does not resolve hurricane-force
+      gusts, so no historical component is used for this hazard.
+    alert_events:
+      - Hurricane Warning
+      - Hurricane Watch
+      - Tropical Storm Warning
+      - Tropical Storm Watch
+      - Storm Surge Warning
+      - Storm Surge Watch
+      - High Wind Warning
+      - High Wind Watch
+      - Extreme Wind Warning
+
+  flood:
+    label: "Flood exposure"
+    weights:
+      baseline: 0.45
+      historical: 0.30
+      current: 0.25
+    # Inland and coastal flooding are DIFFERENT exposures that both disrupt a
+    # hub, so they are averaged rather than maxed -- unlike winter, where the
+    # two hazards are alternative causes of the same outcome. Coastal is null
+    # for inland counties; the engine renormalises over what is present and
+    # says so.
+    baseline_hazards: [inland_flooding, coastal_flooding]
+    baseline_combine: mean
+    historical_metric: heavy_precip_days
+    anchor_days_per_year: 12
+    alert_events:
+      - Flood Warning
+      - Flood Watch
+      - Flash Flood Warning
+      - Flash Flood Watch
+      - Coastal Flood Warning
+      - Coastal Flood Watch
+      - Coastal Flood Advisory
+      - River Flood Warning
+      - River Flood Watch
+
+# Daily thresholds behind each historical metric. Units are those of the
+# normalised snapshot: inches and mph.
+climatology_thresholds:
+  # 1.0 in of fresh snow -- conventional operational road/airport guidance.
+  snow_disruption_days_in: 1.0
+  # 1.0 in of precipitation in a day is a common flash-flood-risk heuristic.
+  heavy_precip_days_in: 1.0
+  # 58 mph is the NWS severe-thunderstorm wind criterion (50 kt).
+  damaging_wind_days_mph: 58.0
+
+# NWS alert severity -> a 0-100 current-conditions score.
+#
+# "Unknown" is deliberately ABSENT rather than mapped to 0. Unknown severity is
+# missing information, and scoring it as zero would assert "no current risk"
+# from an alert that exists. An alert with unknown severity is excluded from
+# the current component and disclosed.
+#
+# Note the difference from NO alerts at all: that legitimately IS a zero
+# current component, because the absence of a warning is real information.
+alert_severity_scores:
+  Extreme: 100
+  Severe: 75
+  Moderate: 50
+  Minor: 25
