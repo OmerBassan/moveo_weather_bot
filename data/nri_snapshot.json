@@ -1,0 +1,1408 @@
+{
+  "source": "FEMA National Risk Index, county level (v1.20.0, December 2025)",
+  "service_url": "https://services.arcgis.com/XG15cJAlne2vxtgt/arcgis/rest/services/National_Risk_Index_Counties/FeatureServer/0/query",
+  "fips_field": "STCOFIPS",
+  "note": "A null risk_score means the hazard is not modelled for that county, not that the county is safe from it.",
+  "hubs": {
+    "chicago-il": {
+      "hub_id": "chicago-il",
+      "nri_fips": "17031",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 100,
+          "risk_rating": "Very High",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 100,
+          "risk_rating": "Very High",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": 48.894451397580305,
+          "risk_rating": "Very Low",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 99.93638676844783,
+          "risk_rating": "Very High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": 44,
+          "risk_rating": "Relatively Low",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 99.96819338422391,
+        "RISK_RATNG": "Very High"
+      }
+    },
+    "minneapolis-mn": {
+      "hub_id": "minneapolis-mn",
+      "nri_fips": "27053",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 97.42202418841502,
+          "risk_rating": "Very High",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 99.84096692111959,
+          "risk_rating": "Very High",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": null,
+          "risk_rating": "Not Applicable",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 98.02798982188295,
+          "risk_rating": "Relatively High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": null,
+          "risk_rating": "Not Applicable",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 98.31424936386769,
+        "RISK_RATNG": "Relatively High"
+      }
+    },
+    "detroit-mi": {
+      "hub_id": "detroit-mi",
+      "nri_fips": "26163",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 94.74856779121579,
+          "risk_rating": "Relatively High",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 99.74554707379136,
+          "risk_rating": "Very High",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": 57.78055903212349,
+          "risk_rating": "Very Low",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 99.39567430025446,
+          "risk_rating": "Very High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": 49.6,
+          "risk_rating": "Relatively Low",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 98.95038167938931,
+        "RISK_RATNG": "Relatively High"
+      }
+    },
+    "indianapolis-in": {
+      "hub_id": "indianapolis-in",
+      "nri_fips": "18097",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 93.69828134945894,
+          "risk_rating": "Relatively High",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 98.69592875318067,
+          "risk_rating": "Relatively High",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": 34.08427200667501,
+          "risk_rating": "Very Low",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 98.2824427480916,
+          "risk_rating": "Relatively High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": null,
+          "risk_rating": "Not Applicable",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 97.48727735368958,
+        "RISK_RATNG": "Relatively High"
+      }
+    },
+    "columbus-oh": {
+      "hub_id": "columbus-oh",
+      "nri_fips": "39049",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 96.33991088478676,
+          "risk_rating": "Relatively High",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 99.20483460559797,
+          "risk_rating": "Very High",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": 49.68710888610764,
+          "risk_rating": "Very Low",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 98.79134860050891,
+          "risk_rating": "Relatively High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": null,
+          "risk_rating": "Not Applicable",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 98.05979643765903,
+        "RISK_RATNG": "Relatively High"
+      }
+    },
+    "kansas-city-mo": {
+      "hub_id": "kansas-city-mo",
+      "nri_fips": "29095",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 91.1839592616168,
+          "risk_rating": "Relatively High",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 95.96055979643766,
+          "risk_rating": "Relatively High",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": 0,
+          "risk_rating": "No Rating",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 96.50127226463104,
+          "risk_rating": "Relatively High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": null,
+          "risk_rating": "Not Applicable",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 96.50127226463104,
+        "RISK_RATNG": "Relatively High"
+      }
+    },
+    "st-louis-mo": {
+      "hub_id": "st-louis-mo",
+      "nri_fips": "29510",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 79.72628898790579,
+          "risk_rating": "Relatively Moderate",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 87.21374045801527,
+          "risk_rating": "Relatively Moderate",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": 32.08176887776387,
+          "risk_rating": "Very Low",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 96.97837150127226,
+          "risk_rating": "Relatively High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": null,
+          "risk_rating": "Not Applicable",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 98.69592875318067,
+        "RISK_RATNG": "Relatively High"
+      }
+    },
+    "milwaukee-wi": {
+      "hub_id": "milwaukee-wi",
+      "nri_fips": "55079",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 96.84914067472947,
+          "risk_rating": "Very High",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 99.96819338422391,
+          "risk_rating": "Very High",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": 18.773466833541928,
+          "risk_rating": "Very Low",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 97.04198473282443,
+          "risk_rating": "Relatively High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": 35.6,
+          "risk_rating": "Very Low",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 98.37786259541986,
+        "RISK_RATNG": "Relatively High"
+      }
+    },
+    "omaha-ne": {
+      "hub_id": "omaha-ne",
+      "nri_fips": "31055",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 98.28134945894334,
+          "risk_rating": "Very High",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 97.29643765903307,
+          "risk_rating": "Relatively High",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": 0,
+          "risk_rating": "No Rating",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 95.06997455470739,
+          "risk_rating": "Relatively High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": null,
+          "risk_rating": "Not Applicable",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 95.86513994910942,
+        "RISK_RATNG": "Relatively High"
+      }
+    },
+    "des-moines-ia": {
+      "hub_id": "des-moines-ia",
+      "nri_fips": "19153",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 90.26098026734563,
+          "risk_rating": "Relatively High",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 91.2849872773537,
+          "risk_rating": "Relatively High",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": 27.492699207342515,
+          "risk_rating": "Very Low",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 92.14376590330788,
+          "risk_rating": "Relatively Moderate",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": null,
+          "risk_rating": "Not Applicable",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 91.98473282442748,
+        "RISK_RATNG": "Relatively Moderate"
+      }
+    },
+    "newark-nj": {
+      "hub_id": "newark-nj",
+      "nri_fips": "34013",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 97.00827498408657,
+          "risk_rating": "Very High",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 95.41984732824427,
+          "risk_rating": "Relatively High",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": 91.82311222361285,
+          "risk_rating": "Relatively Moderate",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 98.82315521628499,
+          "risk_rating": "Relatively High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": 65.4,
+          "risk_rating": "Relatively Moderate",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 97.70992366412213,
+        "RISK_RATNG": "Relatively High"
+      }
+    },
+    "new-york-ny": {
+      "hub_id": "new-york-ny",
+      "nri_fips": "36081",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 99.74538510502865,
+          "risk_rating": "Very High",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 99.71374045801527,
+          "risk_rating": "Very High",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": 97.07968293700459,
+          "risk_rating": "Relatively High",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 99.33206106870229,
+          "risk_rating": "Very High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": 96.6,
+          "risk_rating": "Very High",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 99.17302798982189,
+        "RISK_RATNG": "Relatively High"
+      }
+    },
+    "boston-ma": {
+      "hub_id": "boston-ma",
+      "nri_fips": "25025",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 44.143857415658815,
+          "risk_rating": "Relatively Low",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 94.17938931297711,
+          "risk_rating": "Relatively High",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": 93.6587400917814,
+          "risk_rating": "Relatively High",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 94.72010178117048,
+          "risk_rating": "Relatively High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": 92.2,
+          "risk_rating": "Relatively High",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 93.51145038167938,
+        "RISK_RATNG": "Relatively Moderate"
+      }
+    },
+    "philadelphia-pa": {
+      "hub_id": "philadelphia-pa",
+      "nri_fips": "42101",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 99.77721196690005,
+          "risk_rating": "Very High",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 99.80916030534351,
+          "risk_rating": "Very High",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": 94.28452231956612,
+          "risk_rating": "Relatively High",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 99.58651399491094,
+          "risk_rating": "Very High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": 85.39999999999999,
+          "risk_rating": "Relatively High",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 99.58651399491094,
+        "RISK_RATNG": "Very High"
+      }
+    },
+    "pittsburgh-pa": {
+      "hub_id": "pittsburgh-pa",
+      "nri_fips": "42003",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 93.31635900700192,
+          "risk_rating": "Relatively High",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 98.79134860050891,
+          "risk_rating": "Very High",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": 75.88652482269504,
+          "risk_rating": "Relatively Low",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 99.20483460559797,
+          "risk_rating": "Very High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": null,
+          "risk_rating": "Not Applicable",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 98.09160305343512,
+        "RISK_RATNG": "Relatively High"
+      }
+    },
+    "buffalo-ny": {
+      "hub_id": "buffalo-ny",
+      "nri_fips": "36029",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 99.52259707192871,
+          "risk_rating": "Very High",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 99.55470737913485,
+          "risk_rating": "Very High",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": 71.29745515227367,
+          "risk_rating": "Relatively Low",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 99.01399491094148,
+          "risk_rating": "Relatively High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": 44.4,
+          "risk_rating": "Relatively Low",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 97.67811704834605,
+        "RISK_RATNG": "Relatively High"
+      }
+    },
+    "hartford-ct": {
+      "hub_id": "hartford-ct",
+      "nri_fips": "09110",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 85.70973901973265,
+          "risk_rating": "Relatively High",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 94.81552162849873,
+          "risk_rating": "Relatively High",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": 93.15811430955361,
+          "risk_rating": "Relatively High",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 99.04580152671755,
+          "risk_rating": "Relatively High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": 38.4,
+          "risk_rating": "Very Low",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 97.36005089058524,
+        "RISK_RATNG": "Relatively High"
+      }
+    },
+    "providence-ri": {
+      "hub_id": "providence-ri",
+      "nri_fips": "44007",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 37.33290897517505,
+          "risk_rating": "Relatively Low",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 90.61704834605598,
+          "risk_rating": "Relatively High",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": 91.6979557780559,
+          "risk_rating": "Relatively Moderate",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 96.5966921119593,
+          "risk_rating": "Relatively High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": 56.39999999999999,
+          "risk_rating": "Relatively Low",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 93.6704834605598,
+        "RISK_RATNG": "Relatively Moderate"
+      }
+    },
+    "allentown-pa": {
+      "hub_id": "allentown-pa",
+      "nri_fips": "42077",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 98.79057924888606,
+          "risk_rating": "Very High",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 98.88676844783714,
+          "risk_rating": "Very High",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": 90.19607843137256,
+          "risk_rating": "Relatively Moderate",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 95.35623409669212,
+          "risk_rating": "Relatively High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": null,
+          "risk_rating": "Not Applicable",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 93.89312977099237,
+        "RISK_RATNG": "Relatively Moderate"
+      }
+    },
+    "portland-me": {
+      "hub_id": "portland-me",
+      "nri_fips": "23005",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 98.98154042011458,
+          "risk_rating": "Very High",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 60.655216284987276,
+          "risk_rating": "Relatively Low",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": 90.69670421360033,
+          "risk_rating": "Relatively Moderate",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 72.29643765903307,
+          "risk_rating": "Relatively Low",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": 78.4,
+          "risk_rating": "Relatively Moderate",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 77.00381679389314,
+        "RISK_RATNG": "Relatively Low"
+      }
+    },
+    "dallas-tx": {
+      "hub_id": "dallas-tx",
+      "nri_fips": "48113",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 98.66327180140038,
+          "risk_rating": "Very High",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 99.87277353689568,
+          "risk_rating": "Very High",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": 73.55027117229871,
+          "risk_rating": "Relatively Low",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 99.55470737913485,
+          "risk_rating": "Very High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": null,
+          "risk_rating": "Not Applicable",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 99.6501272264631,
+        "RISK_RATNG": "Very High"
+      }
+    },
+    "houston-tx": {
+      "hub_id": "houston-tx",
+      "nri_fips": "48201",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 88.82877148313176,
+          "risk_rating": "Relatively High",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 99.90458015267176,
+          "risk_rating": "Very High",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": 100,
+          "risk_rating": "Very High",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 99.96819338422391,
+          "risk_rating": "Very High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": 83.2,
+          "risk_rating": "Relatively High",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 99.93638676844783,
+        "RISK_RATNG": "Very High"
+      }
+    },
+    "san-antonio-tx": {
+      "hub_id": "san-antonio-tx",
+      "nri_fips": "48029",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 88.28771483131763,
+          "risk_rating": "Relatively High",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 94.75190839694656,
+          "risk_rating": "Relatively High",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": 83.52106800166875,
+          "risk_rating": "Relatively Moderate",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 99.6501272264631,
+          "risk_rating": "Very High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": null,
+          "risk_rating": "Not Applicable",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 99.42748091603053,
+        "RISK_RATNG": "Relatively High"
+      }
+    },
+    "miami-fl": {
+      "hub_id": "miami-fl",
+      "nri_fips": "12086",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 0,
+          "risk_rating": "No Rating",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 99.52290076335878,
+          "risk_rating": "Very High",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": 99.95828118481434,
+          "risk_rating": "Very High",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 99.71374045801527,
+          "risk_rating": "Very High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": 99.6,
+          "risk_rating": "Very High",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 99.61832061068702,
+        "RISK_RATNG": "Very High"
+      }
+    },
+    "tampa-fl": {
+      "hub_id": "tampa-fl",
+      "nri_fips": "12057",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 0,
+          "risk_rating": "No Rating",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 99.45928753180662,
+          "risk_rating": "Very High",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": 99.29078014184397,
+          "risk_rating": "Very High",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 97.7735368956743,
+          "risk_rating": "Relatively High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": 92.4,
+          "risk_rating": "Relatively High",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 98.82315521628499,
+        "RISK_RATNG": "Relatively High"
+      }
+    },
+    "jacksonville-fl": {
+      "hub_id": "jacksonville-fl",
+      "nri_fips": "12031",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 7.92488860598345,
+          "risk_rating": "Very Low",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 98.53689567430025,
+          "risk_rating": "Relatively High",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": 97.66374634960367,
+          "risk_rating": "Relatively High",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 97.55089058524173,
+          "risk_rating": "Relatively High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": 91,
+          "risk_rating": "Relatively High",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 97.20101781170484,
+        "RISK_RATNG": "Relatively High"
+      }
+    },
+    "atlanta-ga": {
+      "hub_id": "atlanta-ga",
+      "nri_fips": "13121",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 72.43793761935073,
+          "risk_rating": "Relatively Moderate",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 89.82188295165395,
+          "risk_rating": "Relatively High",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": 74.92699207342511,
+          "risk_rating": "Relatively Low",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 97.67811704834605,
+          "risk_rating": "Relatively High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": null,
+          "risk_rating": "Not Applicable",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 95.80152671755725,
+        "RISK_RATNG": "Relatively High"
+      }
+    },
+    "charlotte-nc": {
+      "hub_id": "charlotte-nc",
+      "nri_fips": "37119",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 85.35964353914704,
+          "risk_rating": "Relatively High",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 82.15648854961832,
+          "risk_rating": "Relatively Moderate",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": 84.18856904463912,
+          "risk_rating": "Relatively Moderate",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 98.95038167938931,
+          "risk_rating": "Relatively High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": null,
+          "risk_rating": "Not Applicable",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 97.07379134860051,
+        "RISK_RATNG": "Relatively High"
+      }
+    },
+    "memphis-tn": {
+      "hub_id": "memphis-tn",
+      "nri_fips": "47157",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 88.66963717377466,
+          "risk_rating": "Relatively High",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 99.77735368956743,
+          "risk_rating": "Very High",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": 67.1255736337088,
+          "risk_rating": "Relatively Low",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 98.66412213740458,
+          "risk_rating": "Relatively High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": null,
+          "risk_rating": "Not Applicable",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 99.36386768447836,
+        "RISK_RATNG": "Relatively High"
+      }
+    },
+    "new-orleans-la": {
+      "hub_id": "new-orleans-la",
+      "nri_fips": "22071",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 84.53214513049014,
+          "risk_rating": "Relatively Moderate",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 97.67811704834605,
+          "risk_rating": "Relatively High",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": 99.66624947851481,
+          "risk_rating": "Very High",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 93.51145038167938,
+          "risk_rating": "Relatively High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": 81.2,
+          "risk_rating": "Relatively Moderate",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 98.25063613231552,
+        "RISK_RATNG": "Relatively High"
+      }
+    },
+    "denver-co": {
+      "hub_id": "denver-co",
+      "nri_fips": "08031",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 91.94780394653087,
+          "risk_rating": "Relatively High",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 92.14376590330788,
+          "risk_rating": "Relatively High",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": null,
+          "risk_rating": "Not Applicable",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 95.26081424936386,
+          "risk_rating": "Relatively High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": null,
+          "risk_rating": "Not Applicable",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 95.22900763358778,
+        "RISK_RATNG": "Relatively High"
+      }
+    },
+    "phoenix-az": {
+      "hub_id": "phoenix-az",
+      "nri_fips": "04013",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 38.733290897517506,
+          "risk_rating": "Relatively Low",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 0,
+          "risk_rating": "No Rating",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": 26.574885273258243,
+          "risk_rating": "Very Low",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 99.87277353689568,
+          "risk_rating": "Very High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": null,
+          "risk_rating": "Not Applicable",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 99.87277353689568,
+        "RISK_RATNG": "Very High"
+      }
+    },
+    "seattle-wa": {
+      "hub_id": "seattle-wa",
+      "nri_fips": "53033",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 94.71674092934437,
+          "risk_rating": "Relatively High",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 26.52671755725191,
+          "risk_rating": "Relatively Low",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": null,
+          "risk_rating": "Not Applicable",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 99.45928753180662,
+          "risk_rating": "Very High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": 71,
+          "risk_rating": "Relatively Moderate",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 99.68193384223919,
+        "RISK_RATNG": "Very High"
+      }
+    },
+    "portland-or": {
+      "hub_id": "portland-or",
+      "nri_fips": "41051",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 85.23233609166137,
+          "risk_rating": "Relatively High",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 90.96692111959288,
+          "risk_rating": "Relatively High",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": null,
+          "risk_rating": "Not Applicable",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 95.54707379134861,
+          "risk_rating": "Relatively High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": 43.4,
+          "risk_rating": "Relatively Low",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 98.47328244274809,
+        "RISK_RATNG": "Relatively High"
+      }
+    },
+    "salt-lake-city-ut": {
+      "hub_id": "salt-lake-city-ut",
+      "nri_fips": "49035",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 98.72692552514322,
+          "risk_rating": "Very High",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 32.63358778625955,
+          "risk_rating": "Relatively Low",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": null,
+          "risk_rating": "Not Applicable",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 92.93893129770993,
+          "risk_rating": "Relatively Moderate",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": 0,
+          "risk_rating": "No Rating",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 98.56870229007633,
+        "RISK_RATNG": "Relatively High"
+      }
+    },
+    "las-vegas-nv": {
+      "hub_id": "las-vegas-nv",
+      "nri_fips": "32003",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 61.58497772119669,
+          "risk_rating": "Relatively Moderate",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 2.639949109414758,
+          "risk_rating": "Very Low",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": 0,
+          "risk_rating": "No Rating",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 99.61832061068702,
+          "risk_rating": "Very High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": null,
+          "risk_rating": "Not Applicable",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 99.55470737913485,
+        "RISK_RATNG": "Very High"
+      }
+    },
+    "los-angeles-ca": {
+      "hub_id": "los-angeles-ca",
+      "nri_fips": "06037",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 74.76129853596434,
+          "risk_rating": "Relatively Moderate",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 5.820610687022901,
+          "risk_rating": "Very Low",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": 0,
+          "risk_rating": "No Rating",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 100,
+          "risk_rating": "Very High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": 90,
+          "risk_rating": "Relatively High",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 100,
+        "RISK_RATNG": "Very High"
+      }
+    },
+    "sacramento-ca": {
+      "hub_id": "sacramento-ca",
+      "nri_fips": "06067",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 6.556333545512412,
+          "risk_rating": "Very Low",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 0,
+          "risk_rating": "No Rating",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": null,
+          "risk_rating": "Not Applicable",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 98.9821882951654,
+          "risk_rating": "Relatively High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": 0,
+          "risk_rating": "No Rating",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 98.1234096692112,
+        "RISK_RATNG": "Relatively High"
+      }
+    },
+    "boise-id": {
+      "hub_id": "boise-id",
+      "nri_fips": "16001",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 98.94971355824316,
+          "risk_rating": "Very High",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 51.68575063613231,
+          "risk_rating": "Relatively Low",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": null,
+          "risk_rating": "Not Applicable",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 89.82188295165395,
+          "risk_rating": "Relatively Moderate",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": null,
+          "risk_rating": "Not Applicable",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 87.75445292620864,
+        "RISK_RATNG": "Relatively Moderate"
+      }
+    },
+    "reno-nv": {
+      "hub_id": "reno-nv",
+      "nri_fips": "32031",
+      "hazards": {
+        "winter_weather": {
+          "risk_score": 99.01336728198599,
+          "risk_rating": "Very High",
+          "field_prefix": "WNTW"
+        },
+        "cold_wave": {
+          "risk_score": 2.162849872773537,
+          "risk_rating": "Very Low",
+          "field_prefix": "CWAV"
+        },
+        "hurricane": {
+          "risk_score": null,
+          "risk_rating": "Not Applicable",
+          "field_prefix": "HRCN"
+        },
+        "inland_flooding": {
+          "risk_score": 94.529262086514,
+          "risk_rating": "Relatively High",
+          "field_prefix": "IFLD"
+        },
+        "coastal_flooding": {
+          "risk_score": null,
+          "risk_rating": "Not Applicable",
+          "field_prefix": "CFLD"
+        }
+      },
+      "composite": {
+        "RISK_SCORE": 96.69211195928753,
+        "RISK_RATNG": "Relatively High"
+      }
+    }
+  }
+}
