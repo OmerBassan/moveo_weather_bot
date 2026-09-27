@@ -239,7 +239,14 @@ def load_config() -> AppConfig:
         history_snapshot_path=data_dir / "history_snapshot.json",
         raw_dir=data_dir / "raw",
         history_start_date=_env_str("WRA_HISTORY_START", "2021-01-01"),
-        history_end_date=_env_str("WRA_HISTORY_END", "2025-12-31"),
+        # Open-Meteo's archive lags ~5 days, so this is set a little further
+        # back than that. It is an explicit date rather than a computed
+        # "today - 6", because the fetch script discards a snapshot whose
+        # window differs from the requested one: a window that moved every
+        # run would refetch all 40 hubs every time and could never resume.
+        # Re-run scripts.fetch_history with WRA_HISTORY_END set forward to
+        # extend the record.
+        history_end_date=_env_str("WRA_HISTORY_END", "2026-09-20"),
         http_timeout_seconds=_env_int("WRA_HTTP_TIMEOUT", 60),
         http_max_retries=_env_int("WRA_HTTP_MAX_RETRIES", 3),
     )

@@ -79,7 +79,10 @@ def _independent_rankings(
             for h in (registry.by_id(i) for i in dict.fromkeys(hub_ids))
             if h is not None
         )
-        ranked = rank_hubs(hubs, hazard, deps.nri, deps.engine_alerts())
+        ranked = rank_hubs(
+            hubs, hazard, deps.nri, deps.engine_alerts(),
+            forecasts_by_hub=deps.forecasts,
+        )
         orders[hazard] = [r.hub_id for r in ranked]
         for result in ranked:
             scores[(hazard, result.hub_id)] = result.score
@@ -139,7 +142,10 @@ def run_case(
     result.output_tokens = turn.output_tokens
     result.cached_tokens = turn.cached_tokens
 
-    deps = build_deps(nri)
+    # The turn's OWN deps: the same alerts and forecasts it was scored from.
+    # Building fresh ones here would re-fetch live data and compare a response
+    # against different weather.
+    deps = turn.deps or build_deps(nri)
     extra_allowed: set[float] = set()
 
     result.checks.append(checks.check_intent(response, case.expect_intent))

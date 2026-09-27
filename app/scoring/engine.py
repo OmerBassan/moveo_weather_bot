@@ -252,8 +252,16 @@ def _historical_component(
 def _current_component(
     hub: Hub, hazard_config: dict[str, Any], config: dict[str, Any],
     alerts: tuple[dict[str, Any], ...], weight: float,
+    forecast: dict[str, Any] | None = None,
 ) -> tuple[Component, list[str], list[str]]:
-    """Live NWS alerts for this hub, filtered to this hazard's event types."""
+    """Live near-term conditions: issued alerts AND the quantitative forecast.
+
+    Two readings of the same thing, so the component takes the HIGHER. The
+    alert is authoritative -- a forecaster decided it warranted one -- and the
+    forecast is the earlier signal. Before the forecast was added, a hub with
+    six inches of snow arriving and no warning yet issued scored zero here,
+    which read as calm.
+    """
     severity_scores = config["alert_severity_scores"]
     relevant_events = set(hazard_config["alert_events"])
 
@@ -271,26 +279,74 @@ def _current_component(
     assumptions: list[str] = []
     evidence: list[str] = []
 
+    # ---- the forecast reading -----------------------------------------
+    forecast_value: float | None = None
+    forecast_detail = ""
+    metric = hazard_config.get("forecast_metric")
+    if forecast is not None and metric:
+        anchor = float(hazard_config["forecast_anchor"])
+        floor = float(hazard_config.get("forecast_floor", 0.0))
+        measured = float(forecast.get(metric) or 0.0)
+        span = anchor - floor
+        forecast_value = (
+            0.0
+            if measured <= floor or span <= 0
+            else min(100.0, (measured - floor) / span * 100.0)
+        )
+        units = "in" if metric != "max_wind_gust_mph" else "mph"
+        forecast_detail = (
+            f"{measured:.2f} {units} forecast over {forecast.get('window_hours', 72)}h "
+            f"(scores from {floor:g} to {anchor:g} {units})"
+        )
+        evidence.append(
+            f"{hub.label}: NWS forecast {metric.replace('_', ' ')} {measured:.2f} {units} "
+            f"in the next {forecast.get('window_hours', 72)} hours"
+        )
+        assumptions.append(
+            f"The forecast component scores 0 below {floor:g} {units} over "
+            f"{forecast.get('window_hours', 72)} hours and reaches 100 at "
+            f"{anchor:g} {units}. Both bounds are prototype assumptions."
+        )
+
+    # ---- the alert reading ---------------------------------------------
+    alert_value: float | None = None
+    alert_detail = "no active NWS alerts for this hazard"
     if scored:
         # MAX, not sum: two simultaneous warnings do not double the disruption,
         # and summing would let a quiet hub with many advisories outrank a hub
         # under a single Extreme warning.
-        value, event = max(scored, key=lambda pair: pair[0])
-        detail = f"{len(scored)} active alert(s); worst is {event}"
+        alert_value, event = max(scored, key=lambda pair: pair[0])
+        alert_detail = f"{len(scored)} active alert(s); worst is {event}"
         evidence.extend(
             f"{hub.label}: active NWS alert {name} (severity score {score:.0f})"
             for score, name in sorted(scored, reverse=True)
         )
     elif unscoreable:
-        # Every relevant alert had an unusable severity: the component is not
-        # measured, rather than zero.
-        value = None
-        detail = f"{len(unscoreable)} active alert(s) with unknown severity"
+        # Every relevant alert had an unusable severity: not measured.
+        alert_value = None
+        alert_detail = f"{len(unscoreable)} active alert(s) with unknown severity"
     else:
-        # Genuinely quiet. This IS a measurement.
-        value = 0.0
-        detail = "no active NWS alerts for this hazard"
+        alert_value = 0.0
         evidence.append(f"{hub.label}: no active NWS alerts for this hazard")
+
+    # ---- combine --------------------------------------------------------
+    readings = [v for v in (alert_value, forecast_value) if v is not None]
+    if not readings:
+        value = None
+        detail = alert_detail
+    else:
+        value = max(readings)
+        # `alert_value or -1.0` would be WRONG here: a legitimate alert score
+        # of 0.0 ("no active alerts") is falsy, so it would become -1.0 and
+        # every quiet hub would be reported as "forecast-driven" even when the
+        # forecast is also 0.0. Compare against None explicitly.
+        alert_baseline = -1.0 if alert_value is None else alert_value
+        if forecast_value is not None and forecast_value > alert_baseline:
+            detail = f"forecast-driven: {forecast_detail}"
+        elif forecast_detail:
+            detail = f"{alert_detail}; forecast {forecast_detail}"
+        else:
+            detail = alert_detail
 
     if unscoreable:
         assumptions.append(
@@ -318,6 +374,7 @@ def score_hub(
     nri: dict[str, Any],
     alerts: tuple[dict[str, Any], ...] = (),
     weights: dict[str, Any] | None = None,
+    forecast: dict[str, Any] | None = None,
 ) -> HazardScore:
     """Score one hub for one hazard. Pure: everything it reads is an argument
     or the frozen climatology."""
@@ -357,7 +414,7 @@ def score_hub(
         assumptions.append(str(hazard_config["methodology_note"]).strip())
 
     current, current_assumptions, current_evidence = _current_component(
-        hub, hazard_config, config, alerts, float(component_weights["current"])
+        hub, hazard_config, config, alerts, float(component_weights["current"]), forecast
     )
     assumptions += current_assumptions
     evidence += current_evidence
@@ -416,6 +473,7 @@ def rank_hubs(
     nri_snapshot: dict[str, Any],
     alerts_by_hub: dict[str, tuple[dict[str, Any], ...]] | None = None,
     weights: dict[str, Any] | None = None,
+    forecasts_by_hub: dict[str, dict[str, Any]] | None = None,
 ) -> tuple[HazardScore, ...]:
     """Score every hub and order them, highest risk first.
 
@@ -426,6 +484,7 @@ def rank_hubs(
     two answers.
     """
     alerts_by_hub = alerts_by_hub or {}
+    forecasts_by_hub = forecasts_by_hub or {}
     scores = [
         score_hub(
             hub,
@@ -433,6 +492,7 @@ def rank_hubs(
             nri_snapshot["hubs"][hub.id],
             alerts_by_hub.get(hub.id, ()),
             weights,
+            forecasts_by_hub.get(hub.id),
         )
         for hub in hubs
     ]

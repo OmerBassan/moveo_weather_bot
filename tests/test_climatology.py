@@ -87,7 +87,13 @@ class TestProvenance:
         assert provenance["grid_cell_offset_km"] >= 0
         assert provenance["requested_latitude"] != provenance["returned_latitude"]
 
-    def test_five_full_years_are_available(self) -> None:
-        assert climatology.available_years("denver-co") == (
-            "2021", "2022", "2023", "2024", "2025",
-        )
+    def test_record_runs_from_2021_to_the_current_year(self) -> None:
+        """The window is extended by re-running scripts.fetch_history, so this
+        asserts the shape rather than a fixed end date -- it must not start
+        failing simply because the record was brought up to date."""
+        from datetime import date
+
+        years = climatology.available_years("denver-co")
+        assert years[0] == "2021"
+        assert int(years[-1]) >= date.today().year - 1
+        assert len(years) == int(years[-1]) - int(years[0]) + 1, "a year is missing"

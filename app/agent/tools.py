@@ -70,10 +70,28 @@ class Deps:
     registry: HubRegistry = field(default_factory=load_hubs)
     alerts: dict[str, tuple[nws.Alert, ...]] = field(default_factory=dict)
     alerts_error: str | None = None
+    # Quantitative NWS forecasts, fetched lazily for the hubs actually being
+    # scored -- 40 gridpoint calls on every turn would put the whole network
+    # on the critical path of a question about two hubs.
+    forecasts: dict[str, dict[str, Any]] = field(default_factory=dict)
     sources_used: set[str] = field(default_factory=set)
 
     def engine_alerts(self) -> dict[str, tuple[dict[str, Any], ...]]:
         return nws.alerts_as_engine_input(self.alerts)
+
+    def ensure_forecasts(self, hubs: tuple[Hub, ...]) -> dict[str, dict[str, Any]]:
+        """Fetch forecasts for any of `hubs` not already held, concurrently.
+
+        A failure for one hub leaves it absent rather than zero: the scoring
+        engine renormalises around a missing reading, and a zeroed forecast
+        would read as "calm" for a hub we simply could not reach.
+        """
+        missing = tuple(h for h in hubs if h.id not in self.forecasts)
+        if missing:
+            for hub_id, forecast in nws.fetch_forecasts(missing).items():
+                self.forecasts[hub_id] = forecast.as_dict()
+            self.sources_used.add("NWS quantitative gridpoint forecast")
+        return self.forecasts
 
     def hub_or_error(self, hub_id: str) -> Hub | str:
         hub = self.registry.by_id(hub_id)
@@ -178,7 +196,10 @@ def rank_hubs_by_risk(
             resolved.append(hub)
         hubs = tuple(resolved)
 
-    results = rank_hubs(hubs, hazard, deps.nri, deps.engine_alerts())
+    results = rank_hubs(
+        hubs, hazard, deps.nri, deps.engine_alerts(),
+        forecasts_by_hub=deps.ensure_forecasts(hubs),
+    )
     deps.sources_used.update(
         {"FEMA National Risk Index v1.20.0 (December 2025)", "NWS active alerts"}
     )
@@ -239,7 +260,10 @@ def explain_hub_risk(deps: Deps, hub_id: str, hazard: Hazard) -> dict[str, Any]:
     if hazard not in HAZARDS:
         return {"error": f"Unsupported hazard {hazard!r}. Supported: {', '.join(HAZARDS)}."}
 
-    result = score_hub(hub, hazard, deps.nri["hubs"][hub.id], deps.engine_alerts().get(hub.id, ()))
+    result = score_hub(
+        hub, hazard, deps.nri["hubs"][hub.id], deps.engine_alerts().get(hub.id, ()),
+        forecast=deps.ensure_forecasts((hub,)).get(hub.id),
+    )
     deps.sources_used.update(
         {"FEMA National Risk Index v1.20.0 (December 2025)", "NWS active alerts"}
     )
@@ -249,11 +273,15 @@ def explain_hub_risk(deps: Deps, hub_id: str, hazard: Hazard) -> dict[str, Any]:
     # The hub's rank within its own region, so "why is Dallas high" can say
     # high RELATIVE TO WHAT without a second tool call.
     peers = tuple(h for h in deps.registry.hubs if h.region == hub.region)
-    regional = rank_hubs(peers, hazard, deps.nri, deps.engine_alerts())
+    regional = rank_hubs(
+        peers, hazard, deps.nri, deps.engine_alerts(),
+        forecasts_by_hub=deps.ensure_forecasts(peers),
+    )
     position = next(i for i, r in enumerate(regional) if r.hub_id == hub.id) + 1
 
     payload = _assessment_payload(result, None, deps)
     payload["assumptions"] = list(result.assumptions)
+    payload["forecast_next_72h"] = deps.forecasts.get(hub.id)
     payload["rank_within_region"] = f"{position} of {len(regional)} in the {hub.region}"
     payload["grid_cell_provenance"] = climatology.provenance(hub.id)
     return payload

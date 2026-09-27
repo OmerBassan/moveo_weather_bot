@@ -22,8 +22,10 @@ from __future__ import annotations
 
 import json
 import logging
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -172,3 +174,149 @@ def alerts_as_engine_input(
 
 def fetched_at() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+# --------------------------------------------------------------- forecast --
+
+# How far ahead the forecast component looks. Three days is the horizon a
+# logistics planner can actually act on -- reroute, pre-position, warn a
+# customer -- and it is inside the range where NWS quantitative grids stay
+# meaningful.
+FORECAST_HOURS = 72
+
+# Forecasts are refetched at most this often. NWS updates gridded forecasts on
+# roughly an hourly cadence, so a shorter TTL buys nothing and costs 40
+# requests. Long enough that a conversation's follow-up questions reuse one
+# fetch; short enough that "right now" means it.
+FORECAST_TTL_SECONDS = 1800
+
+_forecast_cache: dict[str, tuple[float, "Forecast"]] = {}
+
+
+@dataclass(frozen=True)
+class Forecast:
+    """Quantitative near-term forecast for one hub, normalised to US units.
+
+    Built from the NWS gridpoint product, which returns NUMBERS with declared
+    units -- not the prose forecast. That distinction is the whole reason a
+    forecast can feed a deterministic score at all: turning "chance of snow
+    showers, heavy at times" into a number would be inventing a scoring rule
+    at runtime, which is exactly what this architecture forbids.
+    """
+
+    hub_id: str
+    hours: int
+    snowfall_in: float
+    precipitation_in: float
+    max_wind_gust_mph: float
+    max_precip_probability: float
+    issued_at: str
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "window_hours": self.hours,
+            "snowfall_in": round(self.snowfall_in, 2),
+            "precipitation_in": round(self.precipitation_in, 2),
+            "max_wind_gust_mph": round(self.max_wind_gust_mph, 1),
+            "max_precip_probability_pct": round(self.max_precip_probability, 0),
+        }
+
+
+def _within_window(valid_time: str, horizon: datetime) -> bool:
+    """NWS validTime is an ISO8601 interval, `<start>/<duration>`. Only the
+    start is needed: a value beginning after the horizon is outside it."""
+    start = valid_time.split("/", 1)[0]
+    try:
+        return datetime.fromisoformat(start) <= horizon
+    except ValueError:
+        return False
+
+
+def _accumulate(block: dict[str, Any] | None, horizon: datetime, factor: float) -> float:
+    """Sum a quantitative series over the window."""
+    if not block:
+        return 0.0
+    return sum(
+        (entry.get("value") or 0.0) * factor
+        for entry in block.get("values", [])
+        if _within_window(entry.get("validTime", ""), horizon)
+    )
+
+
+def _peak(block: dict[str, Any] | None, horizon: datetime, factor: float) -> float:
+    if not block:
+        return 0.0
+    values = [
+        (entry.get("value") or 0.0) * factor
+        for entry in block.get("values", [])
+        if _within_window(entry.get("validTime", ""), horizon)
+    ]
+    return max(values) if values else 0.0
+
+
+def fetch_forecast(hub: Hub, config: AppConfig | None = None) -> Forecast:
+    """One hub's quantitative forecast. Cached for `FORECAST_TTL_SECONDS`.
+
+    Raises `UpstreamError`; the caller decides what a failure means. It must
+    never be turned into a zero forecast, which would read as "calm".
+    """
+    now = time.time()
+    if (cached := _forecast_cache.get(hub.id)) and now - cached[0] < FORECAST_TTL_SECONDS:
+        return cached[1]
+
+    config = config or load_config()
+    zones = load_zones().get(hub.id, {})
+    office, grid_x, grid_y = zones.get("grid_id"), zones.get("grid_x"), zones.get("grid_y")
+    if not office or grid_x is None or grid_y is None:
+        raise UpstreamError(cfg.NWS_API_ROOT, f"no forecast grid recorded for {hub.id}")
+
+    url = f"{cfg.NWS_API_ROOT}/gridpoints/{office}/{grid_x},{grid_y}"
+    with build_client(config) as client:
+        payload = get_json(client, url, {}, max_retries=config.http_max_retries)
+
+    properties = payload.get("properties")
+    if not isinstance(properties, dict):
+        raise UpstreamError(url, f"no properties block for {hub.id}")
+
+    horizon = datetime.now(timezone.utc) + timedelta(hours=FORECAST_HOURS)
+    forecast = Forecast(
+        hub_id=hub.id,
+        hours=FORECAST_HOURS,
+        # NWS serves these as wmoUnit:mm and wmoUnit:km_h-1 (verified against
+        # the live response), normalised here to match the rest of the system.
+        snowfall_in=_accumulate(properties.get("snowfallAmount"), horizon, cfg.MM_TO_INCH),
+        precipitation_in=_accumulate(
+            properties.get("quantitativePrecipitation"), horizon, cfg.MM_TO_INCH
+        ),
+        max_wind_gust_mph=_peak(properties.get("windGust"), horizon, cfg.KMH_TO_MPH),
+        max_precip_probability=_peak(
+            properties.get("probabilityOfPrecipitation"), horizon, 1.0
+        ),
+        issued_at=str(properties.get("updateTime") or ""),
+    )
+    _forecast_cache[hub.id] = (now, forecast)
+    return forecast
+
+
+def fetch_forecasts(hubs: tuple[Hub, ...], config: AppConfig | None = None) -> dict[str, Forecast]:
+    """Forecasts for many hubs, concurrently.
+
+    Sequentially this is ~40 round trips on the critical path of a chat turn.
+    A thread pool keeps it near the latency of the slowest single request. The
+    pool is small deliberately: NWS does not publish its rate limit and says
+    proxies are the ones that hit it, so hammering it with 40 parallel
+    connections is how a demo earns a 429.
+    """
+    config = config or load_config()
+    results: dict[str, Forecast] = {}
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        futures = {pool.submit(fetch_forecast, hub, config): hub for hub in hubs}
+        for future in as_completed(futures):
+            hub = futures[future]
+            try:
+                results[hub.id] = future.result()
+            except UpstreamError as exc:
+                # One hub's forecast failing must not fail the ranking. The
+                # component renormalises around a missing forecast and says so.
+                logger.warning("forecast unavailable for %s: %s", hub.id, exc.detail)
+    return results

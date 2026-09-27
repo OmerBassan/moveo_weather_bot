@@ -301,7 +301,10 @@ def assemble(draft: AgentDraft, deps: Deps) -> AgentResponse:
             if hazard != "hurricane":
                 deps.sources_used.add("Open-Meteo ECMWF IFS reanalysis, 2021-2025")
 
-            ranked = rank_hubs(hubs, hazard, deps.nri, deps.engine_alerts())
+            ranked = rank_hubs(
+                hubs, hazard, deps.nri, deps.engine_alerts(),
+                forecasts_by_hub=deps.ensure_forecasts(hubs),
+            )
             leader = ranked[0].score if ranked else 0.0
             for position, result in enumerate(ranked, start=1):
                 hub = deps.registry.by_id(result.hub_id)
@@ -356,6 +359,12 @@ def assemble(draft: AgentDraft, deps: Deps) -> AgentResponse:
 class TurnResult:
     response: AgentResponse
     messages: list[Any]
+    # The exact evidence this turn was scored from -- the alerts and forecasts
+    # fetched once at its start. Exposed so a caller can recompute the scores
+    # from the SAME observations. With a live forecast in the model, a
+    # verifier that re-fetches is measuring whether the weather changed
+    # between two calls, not whether the agent altered a number.
+    deps: Deps | None = None
     input_tokens: int = 0
     output_tokens: int = 0
     cached_tokens: int = 0
@@ -386,6 +395,7 @@ def run_turn(
     )
     usage = result.usage
     return TurnResult(
+        deps=deps,
         response=assemble(result.output, deps),
         messages=list(result.all_messages()),
         input_tokens=getattr(usage, "input_tokens", 0) or 0,

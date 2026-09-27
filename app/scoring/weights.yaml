@@ -36,6 +36,16 @@ hazards:
     # `anchor_days_per_year` maps to 100.
     historical_metric: snow_disruption_days
     anchor_days_per_year: 20
+    # Forecast anchor: inches of snow in the next 72h mapping to a score of
+    # 100. 6 inches is a hub-disrupting storm rather than an inconvenience.
+    forecast_metric: snowfall_in
+    # Below the floor the forecast scores 0; from floor to anchor it scales
+    # 0-100. WITHOUT A FLOOR the scale runs from zero, so an ordinary flurry
+    # registers as winter disruption and every hub always carries a nonzero
+    # current component. The floor matches the historical disruption
+    # threshold, so "a disruptive snow day" means the same thing in both.
+    forecast_floor: 1.0
+    forecast_anchor: 6.0
     # NWS event types that count as this hazard being active right now.
     alert_events:
       - Winter Storm Warning
@@ -86,6 +96,14 @@ hazards:
     baseline_hazards: [hurricane]
     baseline_combine: max
     historical_metric: null
+    # Peak forecast wind gust (mph) in the next 72h mapping to 100.
+    # 74 mph is hurricane force; tropical-storm force begins near 39.
+    forecast_metric: max_wind_gust_mph
+    # 39 mph is tropical-storm force -- below it, wind is weather, not a
+    # tropical signal. Measured without this floor, a routine 20 mph gust
+    # scored 26/100 and pushed Houston's hurricane score from 60.0 to 70.6.
+    forecast_floor: 39.0
+    forecast_anchor: 74.0
     methodology_note: >-
       Hurricane exposure is scored from FEMA's multi-decade hurricane index and
       current NWS alerts only. A five-year reanalysis window cannot measure
@@ -117,6 +135,11 @@ hazards:
     baseline_combine: mean
     historical_metric: heavy_precip_days
     anchor_days_per_year: 12
+    # Inches of precipitation forecast in the next 72h mapping to 100.
+    forecast_metric: precipitation_in
+    # Matches the heavy-precipitation day threshold used historically.
+    forecast_floor: 1.0
+    forecast_anchor: 3.0
     alert_events:
       - Flood Warning
       - Flood Watch
@@ -138,6 +161,17 @@ climatology_thresholds:
   # 58 mph is the NWS severe-thunderstorm wind criterion (50 kt).
   damaging_wind_days_mph: 58.0
 
+# THE CURRENT COMPONENT COMBINES TWO LIVE SIGNALS, taking the HIGHER.
+#
+#   an issued alert    authoritative: a forecaster decided this warrants one
+#   the raw forecast   the early signal, before any alert exists
+#
+# max(), not sum or mean: they are two readings of the same thing, not two
+# separate risks. Taking the higher means a quantitative forecast can raise a
+# hub before a warning is issued -- closing a real gap, where a hub with six
+# inches of snow coming but no alert yet scored zero -- while an Extreme
+# warning still dominates a mild forecast.
+#
 # NWS alert severity -> a 0-100 current-conditions score.
 #
 # "Unknown" is deliberately ABSENT rather than mapped to 0. Unknown severity is
