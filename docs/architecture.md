@@ -9,6 +9,33 @@ or an honest account of what the system cannot do.
 
 ---
 
+## Summary
+
+*The brief asked for a short document. This one is long because the interesting
+parts are the decisions, not the components. This section is the short version;
+the rest is the evidence.*
+
+| | |
+|---|---|
+| **What it does** | Scores and ranks 40 US hubs for winter, hurricane and flood disruption, and answers questions about them conversationally. |
+| **The claim** | The LLM never produces a number. Its output schema has no score field, so a fabricated score is not representable — there is nothing for a validator to catch. |
+| **How scores are built** | `baseline` (FEMA NRI) + `historical` (5-yr reanalysis) + `current` (live NWS alerts), weighted per hazard, renormalised over whatever is actually measurable, with every omission disclosed. |
+| **Data** | Three committed JSON snapshots. Only NWS alerts are live — the only input that changes between questions. No database. |
+| **Evaluation** | 11 cases through the real pipeline. No LLM judge. Every score independently recomputed and compared. 11/11 on Sonnet 5 and Haiku 4.5. |
+| **Why an LLM** | Follow-ups have no subject — *"what about flooding only?"* names no hub. Resolving that, and declining cleanly on the 3,160 counties and 15 hazards the system does *not* cover, is the work. |
+
+**The five decisions worth arguing with**
+
+1. **Hurricane has no historical component** (§4). A 5-year, 9 km wind proxy ranked New York above Miami for hurricane exposure — it was measuring nor'easters. FEMA's multi-decade index is the right instrument; the exclusion is reported as methodology, not missing data.
+2. **Two FIPS keys per hub** (§3). FEMA and NWS disagree about Connecticut. One key would have surfaced as *"Hartford has no alerts"* — which reads as low risk, not as a bug.
+3. **Two definitions of a snow day** (§4). The literal question and the risk model need different thresholds, and both answers are correct.
+4. **Absent ≠ zero** (§4). Imputing 0 for an unmodelled hazard silently calls it safe. Renormalise and disclose.
+5. **Remove the affordance, don't police it** (§1). No score field, gaps pre-computed, component shares stated. The third of those was added *because* Haiku 4.5 divided 44.8/73.1 itself and the eval caught it.
+
+**Known to be missing:** no forecast component, weights are unfitted assumptions, conversations are in-memory. Full list in §9.
+
+---
+
 ## 1. System architecture
 
 ```

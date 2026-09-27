@@ -104,6 +104,21 @@ CASES: tuple[Case, ...] = (
         expect_hubs=("miami-fl", "houston-tx"),
     ),
     Case(
+        case_id="compare_miami_houston_both_hazards",
+        category="comparison",
+        question="Compare Miami and Houston in terms of hurricane and flood exposure.",
+        expect_intent=("compare",),
+        # BOTH hazards, in one question. This is the assignment's example
+        # verbatim, and it is the exact shape that was silently broken: the
+        # draft schema carried ONE hazard, so a question naming two assembled
+        # assessments for one and discarded the other -- the answer still read
+        # fine, with half its numbers unverifiable. Splitting this into two
+        # single-hazard cases (as the two above do) does not test it.
+        expect_hazards=("hurricane", "flood"),
+        expect_hubs=("miami-fl", "houston-tx"),
+        expect_any_phrase=("hurricane",),
+    ),
+    Case(
         case_id="measure_denver_snow",
         category="measurement",
         question="What percentage of days in Denver last year had snowfall?",
