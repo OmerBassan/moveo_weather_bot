@@ -1,0 +1,42 @@
+# Local demo: two services, one command.
+#
+#   echo 'ANTHROPIC_API_KEY=sk-ant-...' > .env
+#   docker compose up --build
+#   open http://localhost:8501
+#
+# Compose is for local use. Hosting platforms want each service deployed from
+# its own Dockerfile, so docker/ holds both separately and this file only
+# wires them together.
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    environment:
+      # Read from .env or the shell. Never written into the image.
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:?set ANTHROPIC_API_KEY in .env}
+      WRA_NWS_USER_AGENT: ${WRA_NWS_USER_AGENT:-(moveo-weather-risk-agent, omer.m.bassan@gmail.com)}
+      WRA_MODEL: ${WRA_MODEL:-anthropic:claude-sonnet-5}
+    ports:
+      - "8000:8000"
+    healthcheck:
+      # The UI is useless before the agent and snapshots have loaded, so it
+      # waits for this rather than starting into a connection error.
+      test: ["CMD", "python", "-c", "import httpx,sys; sys.exit(0 if httpx.get('http://localhost:8000/health', timeout=5).json()['status']=='ok' else 1)"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+
+  ui:
+    build:
+      context: .
+      dockerfile: docker/ui.Dockerfile
+    environment:
+      WRA_API_URL: http://api:8000
+    ports:
+      - "8501:8501"
+    depends_on:
+      api:
+        condition: service_healthy

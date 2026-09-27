@@ -1,0 +1,5 @@
+# The UI is a pure HTTP client of /chat. Keeping its dependencies to these two
+# is what makes that claim checkable: it cannot import the agent or the
+# scoring engine, because neither is installed.
+httpx==0.28.1
+streamlit==1.64.0
