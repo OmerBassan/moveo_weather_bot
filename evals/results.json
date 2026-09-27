@@ -1,0 +1,477 @@
+[
+  {
+    "case_id": "rank_midwest_winter",
+    "category": "ranking",
+    "passed": true,
+    "intent": "rank",
+    "answer": "Ranked by winter risk score (highest first), the 10 Midwest hubs are:\n1. Milwaukee, WI \u2014 66.2 (High)\n2. Minneapolis, MN \u2014 64.9 (High)\n3. Detroit, MI \u2014 61.6 (High)\n4. Chicago, IL \u2014 60.8 (High)\n5. Columbus, OH \u2014 56.5 (Moderate)\n6. Omaha, NE \u2014 55.7 (Moderate)\n7. Indianapolis, IN \u2014 55.3 (Moderate)\n8. Kansas City, MO \u2014 55.2 (Moderate)\n9. Des Moines, IA \u2014 54.3 (Moderate)\n10. St. Louis, MO \u2014 48.7 (Moderate)\n\nMilwaukee leads the region; Milwaukee, Minneapolis, Detroit, and Chicago are the only \"High\" band hubs. Both Milwaukee and Chicago currently have an active NWS Special Weather Statement (Moderate severity).",
+    "error": null,
+    "seconds": 12.69,
+    "tokens": {
+      "input": 11326,
+      "output": 715,
+      "cached": 8063
+    },
+    "checks": [
+      {
+        "name": "intent",
+        "passed": true,
+        "detail": "got 'rank', expected one of ('rank',)"
+      },
+      {
+        "name": "hub_coverage",
+        "passed": true,
+        "detail": "10 hub(s) assessed"
+      },
+      {
+        "name": "hazard",
+        "passed": true,
+        "detail": "assessed ['winter']"
+      },
+      {
+        "name": "score_integrity",
+        "passed": true,
+        "detail": "10 score(s) verified"
+      },
+      {
+        "name": "ranking_matches_engine",
+        "passed": true,
+        "detail": "1 hazard ranking(s) match"
+      },
+      {
+        "name": "disclosure",
+        "passed": true,
+        "detail": "1 assumption(s), 2 uncertainty note(s)"
+      },
+      {
+        "name": "sources",
+        "passed": true,
+        "detail": "FEMA National Risk Index v1.20.0 (December 2025), NWS active alerts, Open-Meteo ECMWF IFS reanalysis, 2021-2025"
+      },
+      {
+        "name": "groundedness",
+        "passed": true,
+        "detail": "every figure traces to a tool result"
+      }
+    ]
+  },
+  {
+    "case_id": "compare_miami_houston_hurricane",
+    "category": "comparison",
+    "passed": true,
+    "intent": "compare",
+    "answer": "Houston, TX and Miami, FL both score 60.0/100 for hurricane risk (High band), tied at rank 1 and 2 with a gap of 0.0 between them. Both scores come entirely from the FEMA NRI hurricane baseline (100.0/100, the max value), with no contribution from current NWS alerts specific to hurricane hazard. Miami currently has active alerts (Coastal Flood Advisory - Minor, Rip Current Statement - Moderate, Coastal Flood Statement - Minor) and Houston has an Air Quality Alert (Unknown severity), but none of these count toward the hurricane score.",
+    "error": null,
+    "seconds": 14.16,
+    "tokens": {
+      "input": 14936,
+      "output": 683,
+      "cached": 12987
+    },
+    "checks": [
+      {
+        "name": "intent",
+        "passed": true,
+        "detail": "got 'compare', expected one of ('compare',)"
+      },
+      {
+        "name": "hub_coverage",
+        "passed": true,
+        "detail": "2 hub(s) assessed"
+      },
+      {
+        "name": "hazard",
+        "passed": true,
+        "detail": "assessed ['hurricane']"
+      },
+      {
+        "name": "score_integrity",
+        "passed": true,
+        "detail": "2 score(s) verified"
+      },
+      {
+        "name": "ranking_matches_engine",
+        "passed": true,
+        "detail": "1 hazard ranking(s) match"
+      },
+      {
+        "name": "disclosure",
+        "passed": true,
+        "detail": "1 assumption(s), 2 uncertainty note(s)"
+      },
+      {
+        "name": "sources",
+        "passed": true,
+        "detail": "FEMA National Risk Index v1.20.0 (December 2025), NWS active alerts"
+      },
+      {
+        "name": "groundedness",
+        "passed": true,
+        "detail": "every figure traces to a tool result"
+      }
+    ]
+  },
+  {
+    "case_id": "compare_miami_houston_flood",
+    "category": "comparison",
+    "passed": true,
+    "intent": "compare",
+    "answer": "Miami, FL ranks slightly higher for flood risk with a score of 73.1 (High band) vs Houston, TX at 71.2 (also High band) \u2014 a gap of 1.9 points. Miami's score is driven mostly by its FEMA baseline (99.7/100, 61% of its score) plus 3 active NWS alerts (Coastal Flood Advisory, Rip Current Statement, Coastal Flood Statement). Houston's baseline is lower (91.6/100) but its historical heavy-precipitation record is worse: 23.2 qualifying days/year vs Miami's 8.8 days/year, and it currently has no active flood-related alerts (only an unrelated Air Quality Alert).",
+    "error": null,
+    "seconds": 10.53,
+    "tokens": {
+      "input": 14248,
+      "output": 684,
+      "cached": 12500
+    },
+    "checks": [
+      {
+        "name": "intent",
+        "passed": true,
+        "detail": "got 'compare', expected one of ('compare',)"
+      },
+      {
+        "name": "hub_coverage",
+        "passed": true,
+        "detail": "2 hub(s) assessed"
+      },
+      {
+        "name": "hazard",
+        "passed": true,
+        "detail": "assessed ['flood']"
+      },
+      {
+        "name": "score_integrity",
+        "passed": true,
+        "detail": "2 score(s) verified"
+      },
+      {
+        "name": "ranking_matches_engine",
+        "passed": true,
+        "detail": "1 hazard ranking(s) match"
+      },
+      {
+        "name": "disclosure",
+        "passed": true,
+        "detail": "1 assumption(s), 3 uncertainty note(s)"
+      },
+      {
+        "name": "sources",
+        "passed": true,
+        "detail": "FEMA National Risk Index v1.20.0 (December 2025), NWS active alerts, Open-Meteo ECMWF IFS reanalysis, 2021-2025"
+      },
+      {
+        "name": "groundedness",
+        "passed": true,
+        "detail": "every figure traces to a tool result"
+      }
+    ]
+  },
+  {
+    "case_id": "measure_denver_snow",
+    "category": "measurement",
+    "passed": true,
+    "intent": "measure",
+    "answer": "In 2025, Denver, CO had snowfall on 44 of 365 observed days (12.1%).",
+    "error": null,
+    "seconds": 9.97,
+    "tokens": {
+      "input": 18777,
+      "output": 547,
+      "cached": 17230
+    },
+    "checks": [
+      {
+        "name": "intent",
+        "passed": true,
+        "detail": "got 'measure', expected one of ('measure',)"
+      },
+      {
+        "name": "measurement_accuracy",
+        "passed": true,
+        "detail": "stated 12.1 against expected 12.1 (+/-0.2)"
+      },
+      {
+        "name": "groundedness",
+        "passed": true,
+        "detail": "every figure traces to a tool result"
+      },
+      {
+        "name": "expected_phrasing",
+        "passed": true,
+        "detail": "found ['%']"
+      }
+    ]
+  },
+  {
+    "case_id": "explain_dallas",
+    "category": "explanation",
+    "passed": true,
+    "intent": "explain",
+    "answer": "Dallas, TX shows different risk levels by hazard: flood risk is High at 74.8/100 (ranked 1 of 10 South hubs), winter risk is Moderate at 51.4/100 (ranked 2 of 10), and hurricane risk is Moderate at 44.1/100 (ranked 9 of 10).\n\nFor flood: FEMA's NRI inland flooding baseline is 99.6/100 (60% of the score), and the historical record shows 16.8 days/year with precipitation >= 1.0 in. (84 of 1826 observed days, 4.6%), which maxes the historical component (30 pts, 40% of score).\n\nFor winter: FEMA's baseline (max of winter weather=98.7, cold wave=99.9) drives 97% of the score; only 1.0 snow day/year (5 of 1826 days) was observed historically, contributing just 3%.\n\nFor hurricane: FEMA's hurricane baseline is 73.6/100, driving 100% of that score (no historical component is used for hurricane).\n\nNo active NWS alerts are currently affecting any of these hazard scores for Dallas (there is an unrelated Air Quality Alert active).",
+    "error": null,
+    "seconds": 24.77,
+    "tokens": {
+      "input": 23347,
+      "output": 2248,
+      "cached": 19225
+    },
+    "checks": [
+      {
+        "name": "intent",
+        "passed": true,
+        "detail": "got 'explain', expected one of ('explain', 'rank', 'compare')"
+      },
+      {
+        "name": "hub_coverage",
+        "passed": true,
+        "detail": "1 hub(s) assessed"
+      },
+      {
+        "name": "score_integrity",
+        "passed": true,
+        "detail": "3 score(s) verified"
+      },
+      {
+        "name": "ranking_matches_engine",
+        "passed": true,
+        "detail": "3 hazard ranking(s) match"
+      },
+      {
+        "name": "disclosure",
+        "passed": true,
+        "detail": "4 assumption(s), 4 uncertainty note(s)"
+      },
+      {
+        "name": "sources",
+        "passed": true,
+        "detail": "FEMA National Risk Index v1.20.0 (December 2025), NWS active alerts, Open-Meteo ECMWF IFS reanalysis, 2021-2025"
+      },
+      {
+        "name": "groundedness",
+        "passed": true,
+        "detail": "every figure traces to a tool result"
+      },
+      {
+        "name": "expected_phrasing",
+        "passed": true,
+        "detail": "found ['baseline', 'fema', 'flood', 'historical']"
+      }
+    ]
+  },
+  {
+    "case_id": "followup_flood_only",
+    "category": "follow-up",
+    "passed": true,
+    "intent": "compare",
+    "answer": "Miami, FL ranks 1st with a flood risk score of 73.1 (High band); Houston, TX ranks 2nd at 71.2 (High band), a gap of 1.9 points. Miami's score breaks down as: baseline 44.8 pts (FEMA NRI flood baseline 99.7/100), historical 22.0 pts (8.8 qualifying precip days/year), and current alerts 6.2 pts (active Coastal Flood Advisory). Houston's score breaks down as: baseline 41.2 pts (FEMA NRI flood baseline 91.6/100), historical 30.0 pts (23.2 qualifying precip days/year, the max historical contribution), and 0 pts from current alerts (none active for flood).",
+    "error": null,
+    "seconds": 10.47,
+    "tokens": {
+      "input": 12476,
+      "output": 697,
+      "cached": 9527
+    },
+    "checks": [
+      {
+        "name": "intent",
+        "passed": true,
+        "detail": "got 'compare', expected one of ('compare', 'rank')"
+      },
+      {
+        "name": "hub_coverage",
+        "passed": true,
+        "detail": "2 hub(s) assessed"
+      },
+      {
+        "name": "hazard",
+        "passed": true,
+        "detail": "assessed ['flood']"
+      },
+      {
+        "name": "score_integrity",
+        "passed": true,
+        "detail": "2 score(s) verified"
+      },
+      {
+        "name": "ranking_matches_engine",
+        "passed": true,
+        "detail": "1 hazard ranking(s) match"
+      },
+      {
+        "name": "disclosure",
+        "passed": true,
+        "detail": "1 assumption(s), 2 uncertainty note(s)"
+      },
+      {
+        "name": "sources",
+        "passed": true,
+        "detail": "FEMA National Risk Index v1.20.0 (December 2025), NWS active alerts, Open-Meteo ECMWF IFS reanalysis, 2021-2025"
+      },
+      {
+        "name": "groundedness",
+        "passed": true,
+        "detail": "every figure traces to a tool result"
+      }
+    ]
+  },
+  {
+    "case_id": "followup_top_component",
+    "category": "follow-up",
+    "passed": true,
+    "intent": "explain",
+    "answer": "For both hubs, the top driver is the \"baseline\" (FEMA NRI) component. For Miami, FL, baseline contributed 44.8 of 73.1 points (61% of the score). For Houston, TX, baseline contributed 41.2 of 71.2 points (58% of the score).",
+    "error": null,
+    "seconds": 5.81,
+    "tokens": {
+      "input": 5930,
+      "output": 337,
+      "cached": 3871
+    },
+    "checks": [
+      {
+        "name": "intent",
+        "passed": true,
+        "detail": "got 'explain', expected one of ('explain', 'compare', 'rank')"
+      },
+      {
+        "name": "score_integrity",
+        "passed": true,
+        "detail": "2 score(s) verified"
+      },
+      {
+        "name": "ranking_matches_engine",
+        "passed": true,
+        "detail": "1 hazard ranking(s) match"
+      },
+      {
+        "name": "disclosure",
+        "passed": true,
+        "detail": "1 assumption(s), 0 uncertainty note(s)"
+      },
+      {
+        "name": "sources",
+        "passed": true,
+        "detail": "FEMA National Risk Index v1.20.0 (December 2025), NWS active alerts, Open-Meteo ECMWF IFS reanalysis, 2021-2025"
+      },
+      {
+        "name": "groundedness",
+        "passed": true,
+        "detail": "every figure traces to a tool result"
+      },
+      {
+        "name": "expected_phrasing",
+        "passed": true,
+        "detail": "found ['baseline']"
+      }
+    ]
+  },
+  {
+    "case_id": "unknown_hub",
+    "category": "refusal",
+    "passed": true,
+    "intent": "out_of_scope",
+    "answer": "There is no Reykjavik hub in this network. This system covers 40 US distribution hubs; Reykjavik, Iceland is not one of them, so I have no data to report.",
+    "error": null,
+    "seconds": 4.62,
+    "tokens": {
+      "input": 4201,
+      "output": 276,
+      "cached": 3871
+    },
+    "checks": [
+      {
+        "name": "intent",
+        "passed": true,
+        "detail": "got 'out_of_scope', expected one of ('out_of_scope', 'clarify')"
+      },
+      {
+        "name": "groundedness",
+        "passed": true,
+        "detail": "every figure traces to a tool result"
+      },
+      {
+        "name": "no_forbidden_phrasing",
+        "passed": true,
+        "detail": "clean"
+      },
+      {
+        "name": "refused_as_out_of_scope",
+        "passed": true,
+        "detail": "present, expected present"
+      }
+    ]
+  },
+  {
+    "case_id": "out_of_scope_hazard",
+    "category": "refusal",
+    "passed": true,
+    "intent": "out_of_scope",
+    "answer": "I can't answer this. This system covers only three hazards: winter, hurricane, and flood risk. Wildfire risk is not modeled here.",
+    "error": null,
+    "seconds": 4.08,
+    "tokens": {
+      "input": 4197,
+      "output": 256,
+      "cached": 3871
+    },
+    "checks": [
+      {
+        "name": "intent",
+        "passed": true,
+        "detail": "got 'out_of_scope', expected one of ('out_of_scope', 'clarify')"
+      },
+      {
+        "name": "groundedness",
+        "passed": true,
+        "detail": "every figure traces to a tool result"
+      },
+      {
+        "name": "expected_phrasing",
+        "passed": true,
+        "detail": "found ['wildfire', 'not', 'winter', 'hurricane', 'flood']"
+      },
+      {
+        "name": "refused_as_out_of_scope",
+        "passed": true,
+        "detail": "present, expected present"
+      }
+    ]
+  },
+  {
+    "case_id": "ambiguous_portland",
+    "category": "clarification",
+    "passed": true,
+    "intent": "clarify",
+    "answer": "There are two Portland hubs in the network \u2014 Portland, ME and Portland, OR \u2014 and their risk profiles differ.",
+    "error": null,
+    "seconds": 4.36,
+    "tokens": {
+      "input": 4189,
+      "output": 269,
+      "cached": 3871
+    },
+    "checks": [
+      {
+        "name": "intent",
+        "passed": true,
+        "detail": "got 'clarify', expected one of ('clarify',)"
+      },
+      {
+        "name": "groundedness",
+        "passed": true,
+        "detail": "every figure traces to a tool result"
+      },
+      {
+        "name": "expected_phrasing",
+        "passed": true,
+        "detail": "found ['portland']"
+      },
+      {
+        "name": "asked_for_clarification",
+        "passed": true,
+        "detail": "present, expected present"
+      }
+    ]
+  }
+]

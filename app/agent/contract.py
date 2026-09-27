@@ -80,11 +80,15 @@ class AgentDraft(BaseModel):
             "Null when ranking specific hubs or the whole network."
         ),
     )
-    hazard: Hazard | None = Field(
-        default=None,
+    hazards: list[Hazard] = Field(
+        default_factory=list,
         description=(
-            "The hazard in question. Null only for 'clarify', 'out_of_scope', "
-            "or a 'measure' that is not hazard-specific."
+            "Every hazard this question is about, from: winter, hurricane, "
+            "flood. Usually one. Name SEVERAL when the question asks about "
+            "several ('hurricane and flood exposure') or is open-ended about "
+            "overall weather risk ('why is this hub risky?'), in which case "
+            "name all three. Empty only for 'clarify', 'out_of_scope', or a "
+            "'measure' that is not hazard-specific."
         ),
     )
     answer: str = Field(
@@ -140,7 +144,7 @@ class AgentDraft(BaseModel):
             raise ValueError(f"intent is {self.intent!r} but no hub_ids were given")
         if self.intent == "compare" and len(self.hub_ids) < 2:
             raise ValueError("intent is 'compare' but fewer than two hubs were named")
-        if self.intent in ("rank", "compare", "explain") and self.hazard is None:
+        if self.intent in ("rank", "compare", "explain") and not self.hazards:
             raise ValueError(f"intent is {self.intent!r} but no hazard was named")
         return self
 
@@ -160,6 +164,10 @@ class HubAssessment:
     risk_score: float
     risk_band: str
     rank: int | None
+    # Computed by the engine so the agent never subtracts two scores itself.
+    # Carried into the response so a quoted gap is auditable against it.
+    gap_to_leader: float
+    gap_to_next: float | None
     main_drivers: tuple[str, ...]
     component_breakdown: tuple[str, ...]
     evidence: tuple[str, ...]
@@ -174,6 +182,8 @@ class HubAssessment:
             "risk_score": self.risk_score,
             "risk_band": self.risk_band,
             "rank": self.rank,
+            "gap_to_leader": self.gap_to_leader,
+            "gap_to_next": self.gap_to_next,
             "main_drivers": list(self.main_drivers),
             "component_breakdown": list(self.component_breakdown),
             "evidence": list(self.evidence),

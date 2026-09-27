@@ -97,7 +97,15 @@ class TestDeterminism:
     def test_reasoning_effort_is_low(self) -> None:
         """The reasoning lives in the scoring engine. Paying a thinking budget
         to re-derive what a tool already computed is pure waste here."""
-        assert model_settings()["anthropic_effort"] == "low"
+        assert model_settings("anthropic:claude-sonnet-5")["anthropic_effort"] == "low"
+
+    def test_effort_is_omitted_for_models_that_reject_it(self) -> None:
+        """Haiku 4.5 answers 400 "This model does not support the effort
+        parameter" -- so sending it fails every request rather than degrading.
+        Observed, not inferred from the version number."""
+        assert "anthropic_effort" not in model_settings(
+            "anthropic:claude-haiku-4-5-20251001"
+        )
 
     def test_output_is_bounded(self) -> None:
         assert 0 < model_settings()["max_tokens"] <= 4000

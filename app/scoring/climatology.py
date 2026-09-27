@@ -103,9 +103,23 @@ def count_days(
     threshold: float,
     *,
     year: str | None = None,
+    start_date: str | None = None,
+    end_date: str | None = None,
     strict: bool = False,
 ) -> DayCount:
     """Count days where `variable` exceeds `threshold`.
+
+    The period is either a whole `year`, an explicit `start_date`/`end_date`
+    range (ISO YYYY-MM-DD, inclusive), or -- given neither -- the whole
+    snapshot window.
+
+    A RANGE IS SUPPORTED BECAUSE RELATIVE PERIODS EXIST. "The last six
+    months", "the 2023-24 winter season" and "since April" are ordinary
+    questions that a year-only filter silently cannot answer, and the failure
+    mode would be answering about a whole calendar year instead -- a wrong
+    answer wearing a right answer's clothes. The caller resolves the phrase to
+    dates; this function reports back exactly which dates it used, so a
+    mis-resolved period is visible in the answer rather than hidden in it.
 
     `strict` selects `>` over `>=`. The literal "days with any snowfall"
     question needs `> 0`; every operational threshold needs `>=`, so that a
@@ -121,10 +135,28 @@ def count_days(
     if series is None:
         raise KeyError(f"no variable {variable!r} in the history snapshot")
 
+    if year is not None and (start_date or end_date):
+        raise ValueError("pass either year or a start_date/end_date range, not both")
+
     matching = observed = missing = 0
+    first_seen: str | None = None
+    last_seen: str | None = None
+
     for date_str, value in zip(record["dates"], series, strict=True):
         if year is not None and not date_str.startswith(year):
             continue
+        if start_date is not None and date_str < start_date:
+            continue
+        if end_date is not None and date_str > end_date:
+            continue
+
+        # Track the dates actually covered, so the label reports the REAL
+        # period rather than the one that was requested. A range extending
+        # past the snapshot must not be described as if it were covered.
+        if first_seen is None:
+            first_seen = date_str
+        last_seen = date_str
+
         if value is None:
             missing += 1
             continue
@@ -133,6 +165,17 @@ def count_days(
             matching += 1
 
     window = document["window"]
+    if year is not None:
+        label = year
+    elif start_date or end_date:
+        label = (
+            f"{first_seen} to {last_seen}"
+            if first_seen and last_seen
+            else "no days in the requested range"
+        )
+    else:
+        label = f"{window['start']} to {window['end']}"
+
     return DayCount(
         hub_id=hub_id,
         variable=variable,
@@ -141,7 +184,7 @@ def count_days(
         days_matching=matching,
         days_observed=observed,
         days_missing=missing,
-        period_label=year or f"{window['start']} to {window['end']}",
+        period_label=label,
     )
 
 

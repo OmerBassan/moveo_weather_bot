@@ -36,7 +36,7 @@ from app.agent import tools as tool_impl
 from app.config import load_config
 from app.hubs import load_hubs
 from app.http_client import UpstreamError
-from app.scoring.engine import Hazard, rank_hubs
+from app.scoring.engine import rank_hubs
 from app.tools import nws
 
 logger = logging.getLogger(__name__)
@@ -53,7 +53,15 @@ DEFAULT_MODEL = os.environ.get("WRA_MODEL", "anthropic:claude-sonnet-5")
 HISTORY_TURNS = int(os.environ.get("WRA_HISTORY_TURNS", "3"))
 
 
-def model_settings() -> AnthropicModelSettings:
+# Models observed to reject `anthropic_effort` with
+#   400 invalid_request_error: "This model does not support the effort parameter."
+# Kept as a substring list rather than inferred from a version number, because
+# the capability is a property of the model, not something derivable from its
+# name -- and a wrong guess here fails every request rather than degrading.
+_NO_EFFORT_PARAMETER = ("haiku",)
+
+
+def model_settings(model: str | None = None) -> AnthropicModelSettings:
     """Determinism, caching and bounds, in one place.
 
     temperature=0      Set, but VERIFY BEFORE RELYING ON IT: claude-sonnet-5
@@ -86,14 +94,17 @@ def model_settings() -> AnthropicModelSettings:
     max_tokens         the output is a structured draft with short prose. A
                        cap stops a runaway generation costing real money.
     """
-    return AnthropicModelSettings(
+    settings = AnthropicModelSettings(
         temperature=0.0,
         max_tokens=2000,
-        anthropic_effort="low",
         anthropic_cache_instructions=True,
         anthropic_cache_tool_definitions=True,
         anthropic_cache_messages=True,
     )
+    target = (model or DEFAULT_MODEL).lower()
+    if not any(marker in target for marker in _NO_EFFORT_PARAMETER):
+        settings["anthropic_effort"] = "low"
+    return settings
 
 
 def usage_limits() -> UsageLimits:
@@ -132,7 +143,7 @@ def build_agent(model: str | None = None) -> Agent[Deps, AgentDraft]:
         output_type=AgentDraft,
         deps_type=Deps,
         instructions=SYSTEM_PROMPT,
-        model_settings=model_settings(),
+        model_settings=model_settings(model or DEFAULT_MODEL),
         retries=2,
     )
 
@@ -180,7 +191,11 @@ def build_agent(model: str | None = None) -> Agent[Deps, AgentDraft]:
         """Score and rank hubs for one hazard (winter, hurricane or flood),
         highest risk first. Optionally limit to a region or to specific hub ids.
         The scores and the ordering are computed deterministically; use this
-        rather than judging risk yourself."""
+        rather than judging risk yourself.
+
+        Each row carries gap_to_leader and gap_to_next. Quote those figures for
+        any "how much higher/lower" comparison rather than subtracting scores
+        yourself -- every number you state must come from a tool."""
         return tool_impl.rank_hubs_by_risk(ctx.deps, hazard, region, hub_ids)  # type: ignore[arg-type]
 
     @agent.tool
@@ -192,13 +207,28 @@ def build_agent(model: str | None = None) -> Agent[Deps, AgentDraft]:
 
     @agent.tool
     def count_weather_days(
-        ctx: RunContext[Deps], hub_id: str, metric: str, year: str | None = None
+        ctx: RunContext[Deps],
+        hub_id: str,
+        metric: str,
+        year: str | None = None,
+        start_date: str | None = None,
+        end_date: str | None = None,
     ) -> dict[str, Any]:
         """Count days matching a named metric from the 2021-2025 record. Metrics:
         any_snowfall, disruptive_snowfall, heavy_precipitation, damaging_wind,
-        freezing. Pass a four-digit year to restrict the period. Use this for
-        direct measurement questions rather than risk questions."""
-        return tool_impl.count_weather_days(ctx.deps, hub_id, metric, year)
+        freezing.
+
+        Restrict the period with EITHER a four-digit year OR an inclusive
+        start_date/end_date pair (YYYY-MM-DD), never both. Use the range form
+        for relative periods such as a winter season or "the last six months",
+        resolving them against today's date given in your instructions. The
+        result reports the period it actually covered, which may be narrower
+        than you asked for.
+
+        Use this for direct measurement questions rather than risk questions."""
+        return tool_impl.count_weather_days(
+            ctx.deps, hub_id, metric, year, start_date, end_date
+        )
 
     @agent.tool
     def get_hub_alerts(ctx: RunContext[Deps], hub_id: str) -> dict[str, Any]:
@@ -236,8 +266,7 @@ def assemble(draft: AgentDraft, deps: Deps) -> AgentResponse:
     assumptions: list[str] = []
     uncertainty: list[str] = list(draft.caveats)
 
-    if draft.hazard and draft.intent in ("rank", "compare", "explain"):
-        hazard: Hazard = draft.hazard
+    if draft.hazards and draft.intent in ("rank", "compare", "explain"):
         if draft.hub_ids:
             hubs = tuple(
                 h for h in (deps.registry.by_id(i) for i in draft.hub_ids) if h is not None
@@ -248,8 +277,32 @@ def assemble(draft: AgentDraft, deps: Deps) -> AgentResponse:
         else:
             hubs = deps.registry.hubs
 
-        if hubs:
+        # ONE RANKING PER HAZARD. A question can legitimately span several --
+        # "hurricane and flood exposure" is one of the assignment's own
+        # examples, and "why is this hub risky?" spans all three. Assembling
+        # only the first would leave the rest of the answer's numbers with no
+        # corresponding assessment: unverifiable to a reader, and invisible to
+        # the groundedness check that is supposed to catch exactly that.
+        for hazard in draft.hazards:
+            if not hubs:
+                break
+            # Attribute the sources THIS assembly reads, not the ones the model
+            # happened to call. A follow-up answered from conversation context
+            # makes no tool call, yet the scores below are still computed here
+            # from the NRI snapshot, the climatology and the live alerts --
+            # reporting no sources for them would understate the provenance of
+            # numbers the response is asserting.
+            deps.sources_used.update(
+                {
+                    "FEMA National Risk Index v1.20.0 (December 2025)",
+                    "NWS active alerts",
+                }
+            )
+            if hazard != "hurricane":
+                deps.sources_used.add("Open-Meteo ECMWF IFS reanalysis, 2021-2025")
+
             ranked = rank_hubs(hubs, hazard, deps.nri, deps.engine_alerts())
+            leader = ranked[0].score if ranked else 0.0
             for position, result in enumerate(ranked, start=1):
                 hub = deps.registry.by_id(result.hub_id)
                 alerts = deps.alerts.get(result.hub_id, ())
@@ -263,6 +316,12 @@ def assemble(draft: AgentDraft, deps: Deps) -> AgentResponse:
                         risk_score=result.score,
                         risk_band=result.band,
                         rank=position if len(ranked) > 1 else None,
+                        gap_to_leader=round(leader - result.score, 1),
+                        gap_to_next=(
+                            round(result.score - ranked[position].score, 1)
+                            if position < len(ranked)
+                            else None
+                        ),
                         main_drivers=((driver.name,) if driver else ()),
                         component_breakdown=result.breakdown(),
                         evidence=result.evidence,

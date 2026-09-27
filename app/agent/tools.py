@@ -186,11 +186,23 @@ def rank_hubs_by_risk(
         deps.sources_used.add("Open-Meteo ECMWF IFS reanalysis, 2021-2025")
 
     ranking: list[dict[str, Any]] = []
+    leader = results[0].score if results else 0.0
     for position, result in enumerate(results, start=1):
         if position <= DETAIL_ROWS:
-            ranking.append(_assessment_payload(result, position, deps))
+            row = _assessment_payload(result, position, deps)
         else:
-            ranking.append(_compact_row(result, position, deps))
+            row = _compact_row(result, position, deps)
+
+        # THE DELTAS ARE COMPUTED HERE SO THE MODEL NEVER SUBTRACTS.
+        # Without them, an answer like "Miami is 1.9 points ahead of Houston"
+        # is arithmetic the model performed on user-visible numbers -- which
+        # contradicts the whole point of keeping scores out of its schema.
+        # Supplying the difference removes the opportunity rather than
+        # policing it, the same move as omitting risk_score from AgentDraft.
+        row["gap_to_leader"] = round(leader - result.score, 1)
+        if position < len(results):
+            row["gap_to_next"] = round(result.score - results[position].score, 1)
+        ranking.append(row)
 
     # Collected once, deduplicated, order preserved.
     assumptions = list(dict.fromkeys(a for r in results for a in r.assumptions))
@@ -248,7 +260,12 @@ def explain_hub_risk(deps: Deps, hub_id: str, hazard: Hazard) -> dict[str, Any]:
 
 
 def count_weather_days(
-    deps: Deps, hub_id: str, metric: str, year: str | None = None
+    deps: Deps,
+    hub_id: str,
+    metric: str,
+    year: str | None = None,
+    start_date: str | None = None,
+    end_date: str | None = None,
 ) -> dict[str, Any]:
     """Count days matching a named metric. This is the direct-measurement path.
 
@@ -272,15 +289,36 @@ def count_weather_days(
             "error": f"No data for {year}. This snapshot covers {years[0]}-{years[-1]}.",
             "available_years": list(years),
         }
+    if year and (start_date or end_date):
+        return {"error": "Pass either year or a start_date/end_date range, not both."}
 
-    count = climatology.count_days(hub.id, variable, threshold, year=year, strict=strict)
+    try:
+        count = climatology.count_days(
+            hub.id, variable, threshold,
+            year=year, start_date=start_date, end_date=end_date, strict=strict,
+        )
+    except ValueError as exc:
+        return {"error": str(exc)}
+
+    if count.days_observed == 0:
+        return {
+            "error": (
+                f"No days in the requested period fall inside the available record "
+                f"({years[0]}-01-01 to {years[-1]}-12-31)."
+            ),
+            "available_years": list(years),
+        }
     deps.sources_used.add("Open-Meteo ECMWF IFS reanalysis, 2021-2025")
 
     payload: dict[str, Any] = {
         "hub": hub.label,
         "metric": metric,
         "metric_description": description,
+        # The period ACTUALLY covered, which may be narrower than requested if
+        # the range extends past the snapshot. Reported so a mis-resolved
+        # relative period ("last six months") is visible in the answer.
         "period": count.period_label,
+        "period_requested": year or f"{start_date or 'record start'} to {end_date or 'record end'}",
         "days_matching": count.days_matching,
         "days_observed": count.days_observed,
         "days_missing": count.days_missing,
@@ -299,7 +337,8 @@ def count_weather_days(
         other = "disruptive_snowfall" if metric == "any_snowfall" else "any_snowfall"
         o_var, o_threshold, o_strict, o_description = MEASUREMENT_METRICS[other]
         o_count = climatology.count_days(
-            hub.id, o_var, o_threshold, year=year, strict=o_strict
+            hub.id, o_var, o_threshold,
+            year=year, start_date=start_date, end_date=end_date, strict=o_strict,
         )
         payload["companion_metric"] = {
             "metric": other,

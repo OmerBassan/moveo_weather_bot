@@ -125,13 +125,26 @@ class HazardScore:
 
     def breakdown(self) -> tuple[str, ...]:
         """Human-readable arithmetic, for display and for the narrator. Every
-        figure traces to a Component, so none of it can be invented."""
+        figure traces to a Component, so none of it can be invented.
+
+        THE SHARE OF SCORE IS STATED, NOT LEFT TO BE DERIVED. Without it, a
+        model asked "which component contributed most?" divides the
+        contribution by the total itself -- observed: Haiku 4.5 answered "61%
+        of the score" for 44.8/73.1, arithmetic it performed on user-visible
+        numbers. The division was correct, but a correct guess and a wrong one
+        are indistinguishable to a reader. Supplying the percentage removes
+        the need, the same move as supplying the ranking gaps.
+        """
         lines = []
         for component in self.components:
             if component.present:
+                share = (
+                    component.contribution / self.score * 100.0 if self.score else 0.0
+                )
                 lines.append(
                     f"{component.name}: {component.value:.1f} x {component.weight:.2f} "
-                    f"= {component.contribution:.1f} pts ({component.detail})"
+                    f"= {component.contribution:.1f} pts, {share:.0f}% of the "
+                    f"{self.score:.1f} score ({component.detail})"
                 )
             else:
                 lines.append(f"{component.name}: not measured -- {component.detail}")
