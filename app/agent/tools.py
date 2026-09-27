@@ -87,21 +87,45 @@ class Deps:
         )
 
 
-def _assessment_payload(result: HazardScore, rank: int | None, deps: Deps) -> dict[str, Any]:
-    alerts = deps.alerts.get(result.hub_id, ())
-    return {
+# How many hubs in a ranking come back with their full component breakdown.
+# Beyond this the row is compact. Measured: a 40-hub ranking with full detail
+# on every row costs ~9,400 tokens and is the single largest thing this agent
+# reads; ~5,300 of that is detail for hubs nobody asked about. A ranking is
+# read top-down, and any specific hub further down can be fetched with
+# explain_hub_risk for ~365 tokens.
+DETAIL_ROWS = 5
+
+
+def _compact_row(result: HazardScore, rank: int | None, deps: Deps) -> dict[str, Any]:
+    """Enough to state and order the result. ~15 tokens."""
+    row: dict[str, Any] = {
         "hub_id": result.hub_id,
         "hub": result.hub_label,
-        "hazard": result.hazard,
         "risk_score": result.score,
         "risk_band": result.band,
-        "rank": rank,
-        "top_driver": result.top_driver.name if result.top_driver else None,
-        "components": list(result.breakdown()),
-        "evidence": list(result.evidence),
-        "assumptions": list(result.assumptions),
-        "active_alerts": [f"{a.event} ({a.severity})" for a in alerts],
     }
+    if rank is not None:
+        row["rank"] = rank
+    if driver := result.top_driver:
+        row["top_driver"] = driver.name
+    if alerts := deps.alerts.get(result.hub_id, ()):
+        row["active_alerts"] = [f"{a.event} ({a.severity})" for a in alerts]
+    return row
+
+
+def _assessment_payload(result: HazardScore, rank: int | None, deps: Deps) -> dict[str, Any]:
+    """A full row: adds the arithmetic and the evidence lines. ~145 tokens.
+
+    `assumptions` is deliberately NOT here. They are hub-independent almost
+    always -- a 40-hub ranking produced 41 assumption strings of which 2 were
+    unique, costing 1,802 tokens to say 86 tokens' worth -- so the caller
+    collects them once at the top level.
+    """
+    payload = _compact_row(result, rank, deps)
+    payload["hazard"] = result.hazard
+    payload["components"] = list(result.breakdown())
+    payload["evidence"] = list(result.evidence)
+    return payload
 
 
 # ------------------------------------------------------------------ tools --
@@ -116,13 +140,16 @@ def list_hubs(deps: Deps, region: str | None = None) -> dict[str, Any]:
         if not hubs:
             regions = sorted({h.region for h in deps.registry.hubs})
             return {"error": f"No region named {region!r}. Regions: {', '.join(regions)}."}
+    # Grouped by region and emitted as "id=label" pairs rather than one object
+    # per hub: the same information for roughly a third of the tokens, and this
+    # tool exists only to resolve a name to an id.
+    grouped: dict[str, list[str]] = {}
+    for h in hubs:
+        grouped.setdefault(h.region, []).append(f"{h.id}={h.label}")
     return {
         "count": len(hubs),
         "hazards_supported": list(HAZARDS),
-        "hubs": [
-            {"hub_id": h.id, "name": h.label, "region": h.region, "county": h.county_name}
-            for h in hubs
-        ],
+        "hubs_by_region": {r: sorted(v) for r, v in sorted(grouped.items())},
     }
 
 
@@ -158,14 +185,28 @@ def rank_hubs_by_risk(
     if hazard != "hurricane":
         deps.sources_used.add("Open-Meteo ECMWF IFS reanalysis, 2021-2025")
 
-    payload = {
+    ranking: list[dict[str, Any]] = []
+    for position, result in enumerate(results, start=1):
+        if position <= DETAIL_ROWS:
+            ranking.append(_assessment_payload(result, position, deps))
+        else:
+            ranking.append(_compact_row(result, position, deps))
+
+    # Collected once, deduplicated, order preserved.
+    assumptions = list(dict.fromkeys(a for r in results for a in r.assumptions))
+
+    payload: dict[str, Any] = {
         "hazard": hazard,
         "hub_count": len(results),
         "scored_by": "deterministic engine (app/scoring/engine.py)",
-        "ranking": [
-            _assessment_payload(r, i + 1, deps) for i, r in enumerate(results)
-        ],
+        "ranking": ranking,
+        "assumptions": assumptions,
     }
+    if len(results) > DETAIL_ROWS:
+        payload["detail_note"] = (
+            f"Component breakdowns are included for the top {DETAIL_ROWS} only. "
+            f"Call explain_hub_risk for any other hub."
+        )
     if deps.alerts_error:
         payload["live_alerts_unavailable"] = deps.alerts_error
     return payload
@@ -193,6 +234,7 @@ def explain_hub_risk(deps: Deps, hub_id: str, hazard: Hazard) -> dict[str, Any]:
     position = next(i for i, r in enumerate(regional) if r.hub_id == hub.id) + 1
 
     payload = _assessment_payload(result, None, deps)
+    payload["assumptions"] = list(result.assumptions)
     payload["rank_within_region"] = f"{position} of {len(regional)} in the {hub.region}"
     payload["grid_cell_provenance"] = climatology.provenance(hub.id)
     return payload

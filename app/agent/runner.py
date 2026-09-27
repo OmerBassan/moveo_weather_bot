@@ -24,7 +24,9 @@ import os
 from dataclasses import dataclass
 from typing import Any
 
-from pydantic_ai import Agent, RunContext
+from pydantic_ai import Agent, RunContext, UsageLimits
+from pydantic_ai.messages import ModelRequest
+from pydantic_ai.models.anthropic import AnthropicModelSettings
 
 from app.agent.contract import AgentDraft, AgentResponse, HubAssessment
 from app.agent.prompt import SYSTEM_PROMPT
@@ -40,6 +42,79 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_MODEL = os.environ.get("WRA_MODEL", "anthropic:claude-sonnet-5")
 
+# How many previous turns are replayed to the model. Message history is the
+# term that GROWS: every turn resends every earlier turn's tool results, so an
+# uncapped conversation pays for its own transcript again on each question.
+# Three turns covers the follow-up patterns this system is for ("what about
+# flooding only?", "which component contributed most?") without carrying a
+# whole session forever. The full transcript is still kept for display; this
+# bounds only what the model is charged for.
+HISTORY_TURNS = int(os.environ.get("WRA_HISTORY_TURNS", "3"))
+
+
+def model_settings() -> AnthropicModelSettings:
+    """Determinism, caching and bounds, in one place.
+
+    temperature=0      the same question must produce the same answer. This is
+                       a decision-support tool: an analyst who asks twice and
+                       gets two rankings cannot trust either. It also makes the
+                       eval suite mean something -- a failure is a real
+                       failure, not sampling noise.
+
+    anthropic_effort   'low'. The model's job is intent + tool selection +
+                       short synthesis over structured results. The reasoning
+                       is in the scoring engine, and paying for extended
+                       thinking to re-derive what a tool already computed is
+                       the definition of waste here.
+
+    cache_*            the instructions (~970 tokens) and the five tool
+                       schemas are byte-identical on every request, and in a
+                       conversation the earlier messages are too. Caching all
+                       three turns the fixed prefix from a per-request charge
+                       into a written-once one.
+
+    max_tokens         the output is a structured draft with short prose. A
+                       cap stops a runaway generation costing real money.
+    """
+    return AnthropicModelSettings(
+        temperature=0.0,
+        max_tokens=2000,
+        anthropic_effort="low",
+        anthropic_cache_instructions=True,
+        anthropic_cache_tool_definitions=True,
+        anthropic_cache_messages=True,
+    )
+
+
+def usage_limits() -> UsageLimits:
+    """A hard ceiling on one turn.
+
+    A tool-calling agent's failure mode is a loop: it calls a tool, dislikes
+    the result, calls it again. Without a bound that is unmetered spend on a
+    question nobody is still waiting for. Eight tool calls is generous for the
+    worst legitimate case here (resolve names, then rank, then explain two
+    hubs); past that something is wrong and stopping is correct.
+    """
+    return UsageLimits(request_limit=10, tool_calls_limit=8)
+
+
+def trim_history(history: list[Any] | None) -> list[Any] | None:
+    """Keep the most recent turns only.
+
+    Counted in ModelRequest boundaries, which is where a turn begins, so a
+    request and the response that answered it are never split apart -- a
+    dangling tool call with no result is a malformed conversation, not a
+    cheaper one.
+    """
+    if not history:
+        return None
+    boundaries = [
+        i for i, message in enumerate(history) if isinstance(message, ModelRequest)
+    ]
+    if len(boundaries) <= HISTORY_TURNS:
+        return history
+    return history[boundaries[-HISTORY_TURNS] :]
+
 
 def build_agent(model: str | None = None) -> Agent[Deps, AgentDraft]:
     agent = Agent(
@@ -47,6 +122,7 @@ def build_agent(model: str | None = None) -> Agent[Deps, AgentDraft]:
         output_type=AgentDraft,
         deps_type=Deps,
         instructions=SYSTEM_PROMPT,
+        model_settings=model_settings(),
         retries=2,
     )
 
@@ -183,6 +259,17 @@ def assemble(draft: AgentDraft, deps: Deps) -> AgentResponse:
 class TurnResult:
     response: AgentResponse
     messages: list[Any]
+    input_tokens: int = 0
+    output_tokens: int = 0
+    cached_tokens: int = 0
+    requests: int = 0
+
+    @property
+    def cache_hit_rate(self) -> float:
+        """Share of input tokens served from cache rather than charged in
+        full. Reported so the caching is verifiable rather than assumed."""
+        total = self.input_tokens + self.cached_tokens
+        return 0.0 if total == 0 else self.cached_tokens / total * 100.0
 
 
 def run_turn(
@@ -194,5 +281,18 @@ def run_turn(
     """One conversational turn. `history` carries follow-up context."""
     agent = agent or build_agent()
     deps = build_deps(nri)
-    result = agent.run_sync(question, deps=deps, message_history=history or None)
-    return TurnResult(response=assemble(result.output, deps), messages=list(result.all_messages()))
+    result = agent.run_sync(
+        question,
+        deps=deps,
+        message_history=trim_history(history),
+        usage_limits=usage_limits(),
+    )
+    usage = result.usage()
+    return TurnResult(
+        response=assemble(result.output, deps),
+        messages=list(result.all_messages()),
+        input_tokens=getattr(usage, "input_tokens", 0) or 0,
+        output_tokens=getattr(usage, "output_tokens", 0) or 0,
+        cached_tokens=getattr(usage, "cache_read_tokens", 0) or 0,
+        requests=getattr(usage, "requests", 0) or 0,
+    )
