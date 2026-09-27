@@ -1,5 +1,13 @@
-# The UI is a pure HTTP client of /chat. Keeping its dependencies to these two
-# is what makes that claim checkable: it cannot import the agent or the
+# The UI is a pure HTTP client of /chat. Keeping its dependencies to this short
+# list is what makes that claim checkable: it cannot import the agent or the
 # scoring engine, because neither is installed.
 httpx==0.28.1
 streamlit==1.64.0
+
+# Declared explicitly although Streamlit already pulls both in. The UI imports
+# them directly for the ranking chart and table, and a direct import must not
+# rely on staying a transitive dependency of something else -- the day
+# Streamlit drops or repins either, the UI image breaks at run time rather
+# than at install time.
+altair==6.3.0
+pandas==3.0.6
