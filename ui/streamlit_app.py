@@ -14,7 +14,9 @@ Every answer is drawn in three visually distinct trust tiers:
   3. UNVERIFIED      -- `interpretation`: causal / speculative claims, boxed
                         with a dashed border and labelled as such.
 
-Assumptions, uncertainty, sources and token usage sit below as footnotes.
+Assumptions, uncertainty and sources collapse into one popover per answer --
+present and counted, never competing with the scores. Token usage is a single
+faint line below.
 Clarifications and out-of-scope declines get their own unmistakable panels.
 
 This file renders only fields the API returns. It computes nothing about
@@ -456,32 +458,61 @@ def render_unverified(lines: list[str]) -> None:
 
 
 def render_footnotes(payload: dict) -> None:
+    """Assumptions, uncertainty and sources, behind one collapsed control.
+
+    These matter -- an unqualified prototype weighting presented as fact is
+    exactly what this system is built not to do -- but they are qualifications
+    on the answer, not the answer. Rendered inline they were three dense
+    paragraphs competing with the scores for attention, and a reader skimming a
+    ranking scrolled past them either way.
+
+    A popover keeps them one click from every answer, with the count visible so
+    their existence is never hidden, while giving the answer the page back.
+    `help` puts the same summary in a hover tooltip, since Streamlit has no
+    hover-to-open primitive -- opening still takes a click.
+    """
     assumptions = payload.get("assumptions") or []
     uncertainty = payload.get("uncertainty") or []
     sources = payload.get("sources") or []
     if not (assumptions or uncertainty or sources):
         return
 
-    st.markdown("<div style='height:.4rem'></div>", unsafe_allow_html=True)
+    counted = len(assumptions) + len(uncertainty)
+    summary = ", ".join(
+        part for part in (
+            f"{len(assumptions)} assumption{'s' if len(assumptions) != 1 else ''}"
+            if assumptions else "",
+            f"{len(uncertainty)} uncertainty note{'s' if len(uncertainty) != 1 else ''}"
+            if uncertainty else "",
+            f"{len(sources)} source{'s' if len(sources) != 1 else ''}"
+            if sources else "",
+        ) if part
+    )
 
-    def block(title: str, lines: list[str]) -> str:
-        if not lines:
-            return ""
-        return (
-            f"<div class='wr-foot'><b>{esc(title)}</b> — "
-            + " · ".join(esc(line) for line in lines)
-            + "</div>"
-        )
+    st.markdown("<div style='height:.35rem'></div>", unsafe_allow_html=True)
+    with st.popover(
+        f"Assumptions and limitations ({counted})" if counted else "Sources",
+        icon=":material/info:",
+        help=f"What qualifies this answer — {summary}.",
+    ):
+        def block(title: str, lines: list[str], icon: str) -> None:
+            if not lines:
+                return
+            st.markdown(
+                f"<div class='wr-foot' style='margin-bottom:.15rem'>"
+                f"<b>{icon} {esc(title)}</b></div>",
+                unsafe_allow_html=True,
+            )
+            for line in lines:
+                st.markdown(
+                    f"<div class='wr-foot' style='margin:0 0 .3rem .9rem'>"
+                    f"{esc(line)}</div>",
+                    unsafe_allow_html=True,
+                )
 
-    notes = block("Assumptions", assumptions) + block("Uncertainty", uncertainty)
-    total = len(assumptions) + len(uncertainty)
-    if total > 6:
-        with st.expander(f"Assumptions and uncertainty ({total})", icon=":material/info:"):
-            st.markdown(notes, unsafe_allow_html=True)
-    elif notes:
-        st.markdown(notes, unsafe_allow_html=True)
-    if sources:
-        st.markdown(block("Sources", sources), unsafe_allow_html=True)
+        block("Assumptions", assumptions, ":material/tune:")
+        block("Uncertainty", uncertainty, ":material/help:")
+        block("Sources", sources, ":material/database:")
 
 
 def render_usage(usage: dict | None) -> None:
