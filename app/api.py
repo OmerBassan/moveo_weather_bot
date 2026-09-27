@@ -31,6 +31,15 @@ from pydantic import BaseModel, Field
 from pydantic_ai.exceptions import UsageLimitExceeded
 
 from app.agent.runner import build_agent, run_turn
+from app.alerting import (
+    DEFAULT_MIN_DELTA,
+    diff as risk_diff,
+    load_previous,
+    save,
+    take_snapshot,
+    webhook_payload,
+)
+from app.http_client import UpstreamError
 from app.config import (
     OPEN_METEO_ATTRIBUTION_TEXT,
     OPEN_METEO_ATTRIBUTION_URL,
@@ -225,6 +234,52 @@ def methodology() -> dict[str, Any]:
         "climatology_thresholds": weights["climatology_thresholds"],
         "alert_severity_scores": weights["alert_severity_scores"],
     }
+
+
+@app.post("/alerts/check")
+def check_risk_changes(min_delta: float = DEFAULT_MIN_DELTA, commit: bool = False) -> Any:
+    """Re-score every hub and report what moved since the stored baseline.
+
+    The inbound half of the bonus: a scheduler, a webhook or a demo button can
+    trigger a check on demand. The outbound half -- POSTing changes to a
+    webhook URL -- lives in scripts/check_risk_changes.py, which is what a cron
+    entry runs.
+
+    `commit=false` by default so a demo can be run repeatedly against the same
+    baseline without consuming it. A scheduled run passes commit=true, or uses
+    the script.
+    """
+    try:
+        current = take_snapshot(load_config())
+    except UpstreamError as exc:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "error": "live weather data unavailable",
+                "detail": exc.detail,
+                "note": (
+                    "Scoring without live data would produce baseline-only scores "
+                    "and report the difference as a risk change on the next run."
+                ),
+            },
+        )
+
+    previous = load_previous()
+    if previous is None:
+        save(current)
+        return {
+            "baseline_created": True,
+            "scores_stored": len(current.scores),
+            "taken_at": current.taken_at,
+            "note": "No baseline existed. The next check compares against this one.",
+        }
+
+    changes = risk_diff(previous, current, min_delta)
+    payload = webhook_payload(changes, previous, current)
+    if commit:
+        save(current)
+        payload["baseline_advanced"] = True
+    return payload
 
 
 @app.get("/health")

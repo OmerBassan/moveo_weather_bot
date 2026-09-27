@@ -80,6 +80,49 @@ How risky is Portland?                 -> asks which Portland, ME or OR
 
 ---
 
+## Risk-change alerting (the bonus)
+
+Re-scores all 40 hubs across all three hazards, diffs against the stored
+baseline, and reports what moved.
+
+```bash
+# detect and print; --dry-run leaves the baseline untouched
+python -m scripts.check_risk_changes --dry-run
+
+# POST the changes to a webhook
+python -m scripts.check_risk_changes --webhook https://hooks.example.com/...
+
+# or trigger it over HTTP
+curl -X POST 'http://localhost:8000/alerts/check?min_delta=3'
+```
+
+Scheduled with cron or Task Scheduler:
+
+```cron
+0 */6 * * *  cd /srv && python -m scripts.check_risk_changes --webhook $HOOK
+```
+
+Exit codes are meaningful: `0` no changes, `1` changes found, `2` could not
+run. A webhook delivery failure does **not** advance the baseline, so the next
+run reports the same changes rather than losing them.
+
+Sample output:
+
+```
+2 risk change(s), including 1 band crossing(s)
+
+  ! Miami, FL — flood risk increased 14.9 points to 72.9 (Moderate → High)
+      active: Coastal Flood Advisory (Minor)
+  - Dallas, TX — winter risk decreased 8.6 points to 51.2
+```
+
+**This feature is only coherent because the scores are deterministic.** Run the
+check twice in calm weather and all 120 scores are identical, so a diff means
+the inputs changed. Had the model produced the number, every run would drift
+and every run would look like a change.
+
+---
+
 ## Verify it
 
 ```bash
