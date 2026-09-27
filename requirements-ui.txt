@@ -4,10 +4,9 @@
 httpx==0.28.1
 streamlit==1.64.0
 
-# Declared explicitly although Streamlit already pulls both in. The UI imports
-# them directly for the ranking chart and table, and a direct import must not
+# Declared explicitly although Streamlit already pulls it in. The UI imports
+# pandas directly to build the ranking table, and a direct import must not
 # rely on staying a transitive dependency of something else -- the day
-# Streamlit drops or repins either, the UI image breaks at run time rather
-# than at install time.
-altair==6.3.0
+# Streamlit drops or repins it, the UI image breaks at run time rather than
+# at install time.
 pandas==3.0.6

@@ -31,7 +31,6 @@ import html
 import os
 import uuid
 
-import altair as alt
 import httpx
 import pandas as pd
 import streamlit as st
@@ -321,53 +320,6 @@ def render_scorecard(row: dict, *, compact_head: bool = False) -> None:
                             st.markdown(f"- :orange[:material/warning:] {alert}")
 
 
-def render_rank_chart(rows: list[dict], multi_hazard: bool, key: str) -> None:
-    df = pd.DataFrame(
-        {
-            "label": [
-                (f"#{r['rank']}  " if r.get("rank") else "") + row_label(r, multi_hazard)
-                for r in rows
-            ],
-            "score": [float(r.get("risk_score") or 0) for r in rows],
-            "band": [r.get("risk_band") or "Unbanded" for r in rows],
-            "region": [r.get("region", "") for r in rows],
-            "hazard": [r.get("hazard", "") for r in rows],
-        }
-    )
-    order = df["label"].tolist()
-    domain = [b for b in BANDS if b in set(df["band"])] or ["Unbanded"]
-    if "Unbanded" in set(df["band"]) and "Unbanded" not in domain:
-        domain.append("Unbanded")
-    colours = [band_style(b)["hex"] for b in domain]
-
-    base = alt.Chart(df).encode(
-        y=alt.Y("label:N", sort=order, title=None, axis=alt.Axis(labelLimit=260)),
-        x=alt.X("score:Q", scale=alt.Scale(domain=[0, 100]), title="Risk score (0–100)"),
-        tooltip=[
-            alt.Tooltip("label:N", title="Hub"),
-            alt.Tooltip("region:N", title="Region"),
-            alt.Tooltip("hazard:N", title="Hazard"),
-            alt.Tooltip("score:Q", title="Score", format=".1f"),
-            alt.Tooltip("band:N", title="Band"),
-        ],
-    )
-    bars = base.mark_bar(cornerRadiusEnd=3, height={"band": 0.72}).encode(
-        color=alt.Color(
-            "band:N",
-            scale=alt.Scale(domain=domain, range=colours),
-            legend=alt.Legend(title=None, orient="top", direction="horizontal"),
-        )
-    )
-    # Value labels take their band colour: legible on light and dark alike
-    # (Altair's default text colour is black, which vanishes in dark mode).
-    labels = base.mark_text(align="left", dx=4, fontSize=11, fontWeight="bold").encode(
-        text=alt.Text("score:Q", format=".1f"),
-        color=alt.Color("band:N", scale=alt.Scale(domain=domain, range=colours), legend=None),
-    )
-    chart = (bars + labels).properties(height=max(120, 24 * len(df) + 40))
-    st.altair_chart(chart, width="stretch", key=key)
-
-
 def render_rank_table(rows: list[dict], multi_hazard: bool, key: str) -> None:
     df = pd.DataFrame(
         {
@@ -427,11 +379,10 @@ def render_engine(payload: dict, turn_key: str) -> None:
     is_ranking = intent == "rank" or (n >= 5 and any(r.get("rank") for r in rows))
 
     if is_ranking:
-        chart_tab, table_tab = st.tabs([":material/bar_chart: Ranking", ":material/table: Table"])
-        with chart_tab:
-            render_rank_chart(rows, multi_hazard, key=f"{turn_key}-chart")
-        with table_tab:
-            render_rank_table(rows, multi_hazard, key=f"{turn_key}-table")
+        # Table only. A bar chart of 40 hubs spent a lot of vertical space to
+        # re-state a column the table already sorts on, and the table carries
+        # the region, hazard and gap columns the chart could not.
+        render_rank_table(rows, multi_hazard, key=f"{turn_key}-table")
 
         detailed = [r for r in rows if has_detail(r)]
         if detailed:
