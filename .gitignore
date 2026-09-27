@@ -11,3 +11,5 @@ api_start.log
 ui_start.log
 docker_build.log
 docker_up.log
+data/turns.jsonl
+data/risk_state.json

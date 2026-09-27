@@ -30,7 +30,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from pydantic_ai.exceptions import UsageLimitExceeded
 
-from app.agent.runner import build_agent, run_turn
+from app.agent.runner import DEFAULT_MODEL, build_agent, run_turn
 from app.alerting import (
     DEFAULT_MIN_DELTA,
     diff as risk_diff,
@@ -46,6 +46,7 @@ from app.config import (
     load_config,
 )
 from app.hubs import load_hubs
+from app.observability import configure_logging, cost_usd, observe, read_turns, totals
 from app.scoring.engine import HAZARDS, load_weights
 
 logger = logging.getLogger(__name__)
@@ -95,6 +96,7 @@ async def lifespan(app: FastAPI):
     rebuild five tool schemas on every question, and would make the first
     turn's latency a property of disk rather than of the model.
     """
+    configure_logging()
     config = load_config()
     _state["nri"] = json.loads(config.nri_snapshot_path.read_text(encoding="utf-8"))
     _state["agent"] = build_agent()
@@ -129,12 +131,22 @@ def chat(request: ChatRequest) -> Any:
     """One conversational turn."""
     history = _conversations.get(request.conversation_id)
     try:
-        turn = run_turn(
-            request.message,
-            _state["nri"],
-            history=history,
-            agent=_state["agent"],
-        )
+        with observe(request.message, request.conversation_id, DEFAULT_MODEL) as record:
+            turn = run_turn(
+                request.message,
+                _state["nri"],
+                history=history,
+                agent=_state["agent"],
+            )
+            record.intent = turn.response.intent
+            record.hub_count = len(turn.response.assessments)
+            record.hazards = sorted({a.hazard for a in turn.response.assessments})
+            record.input_tokens = turn.input_tokens
+            record.output_tokens = turn.output_tokens
+            record.cached_tokens = turn.cached_tokens
+            record.model_requests = turn.requests
+            if turn.deps is not None:
+                record.tools_called = list(turn.deps.tools_called)
     except UsageLimitExceeded as exc:
         # The agent hit its tool-call ceiling: a loop, not a user error.
         logger.warning("usage limit hit on %s: %s", request.conversation_id, exc)
@@ -176,6 +188,11 @@ def chat(request: ChatRequest) -> Any:
         "cached_input_tokens": turn.cached_tokens,
         "cache_hit_percent": round(turn.cache_hit_rate, 1),
         "model_requests": turn.requests,
+        # Costed server-side from one rate table, so the number a reader
+        # quotes does not depend on which client rendered it.
+        "cost_usd": cost_usd(
+            DEFAULT_MODEL, turn.input_tokens, turn.output_tokens, turn.cached_tokens
+        )["total_usd"],
     }
     return payload
 
@@ -280,6 +297,17 @@ def check_risk_changes(min_delta: float = DEFAULT_MIN_DELTA, commit: bool = Fals
         save(current)
         payload["baseline_advanced"] = True
     return payload
+
+
+@app.get("/observability")
+def observability(limit: int = 25) -> dict[str, Any]:
+    """Recent turns and running totals.
+
+    The turn log is a file, so this is the difference between "the numbers
+    exist somewhere on the server" and "someone can read them" -- including
+    during a demo, without shell access.
+    """
+    return {"totals": totals(), "recent_turns": read_turns(limit)}
 
 
 @app.get("/health")

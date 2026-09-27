@@ -74,6 +74,10 @@ class Deps:
     # scored -- 40 gridpoint calls on every turn would put the whole network
     # on the critical path of a question about two hubs.
     forecasts: dict[str, dict[str, Any]] = field(default_factory=dict)
+    # Names of the tools this turn called, in order. Which tools the agent
+    # chose is the single most useful thing to know when an answer looks
+    # wrong, and nothing else records it.
+    tools_called: list[str] = field(default_factory=list)
     sources_used: set[str] = field(default_factory=set)
 
     def engine_alerts(self) -> dict[str, tuple[dict[str, Any], ...]]:

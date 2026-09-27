@@ -123,6 +123,33 @@ and every run would look like a change.
 
 ---
 
+## Observability
+
+Every answered turn is logged as one line and appended to `data/turns.jsonl`:
+
+```
+[0b69c0cc] compare in 14.2s | 2 hub(s) | tools: list_hubs, rank_hubs_by_risk(flood)
+           | 15375+12977c in / 754 out | $0.0409
+```
+
+Read it back without shell access:
+
+```bash
+curl -s 'http://localhost:8000/observability?limit=10'
+```
+
+which returns recent turns plus running totals — turn count, error count,
+total and mean cost, median and slowest duration, token totals.
+
+Cost is computed server-side from one rate table in `app/observability.py`, so
+the figure a reader quotes does not depend on which client rendered it, and the
+rates used are stored with each turn — a recorded cost is only auditable if the
+rate that produced it was recorded too.
+
+Set `WRA_LOG_LEVEL=DEBUG` for more, `WRA_TURN_LOG` to relocate the file.
+
+---
+
 ## Verify it
 
 ```bash

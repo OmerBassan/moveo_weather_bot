@@ -179,6 +179,7 @@ def build_agent(model: str | None = None) -> Agent[Deps, AgentDraft]:
     def list_hubs(ctx: RunContext[Deps], region: str | None = None) -> dict[str, Any]:
         """List the distribution hubs in the network, optionally filtered to one
         region (Midwest, Northeast, South or West)."""
+        ctx.deps.tools_called.append("list_hubs")
         return tool_impl.list_hubs(ctx.deps, region)
 
     @agent.tool
@@ -196,6 +197,7 @@ def build_agent(model: str | None = None) -> Agent[Deps, AgentDraft]:
         Each row carries gap_to_leader and gap_to_next. Quote those figures for
         any "how much higher/lower" comparison rather than subtracting scores
         yourself -- every number you state must come from a tool."""
+        ctx.deps.tools_called.append(f"rank_hubs_by_risk({hazard})")
         return tool_impl.rank_hubs_by_risk(ctx.deps, hazard, region, hub_ids)  # type: ignore[arg-type]
 
     @agent.tool
@@ -203,6 +205,7 @@ def build_agent(model: str | None = None) -> Agent[Deps, AgentDraft]:
         """Full component-by-component breakdown of one hub's score for one
         hazard, including which component contributed most and how the hub
         ranks within its region."""
+        ctx.deps.tools_called.append(f"explain_hub_risk({hub_id}/{hazard})")
         return tool_impl.explain_hub_risk(ctx.deps, hub_id, hazard)  # type: ignore[arg-type]
 
     @agent.tool
@@ -226,6 +229,7 @@ def build_agent(model: str | None = None) -> Agent[Deps, AgentDraft]:
         than you asked for.
 
         Use this for direct measurement questions rather than risk questions."""
+        ctx.deps.tools_called.append(f"count_weather_days({hub_id}/{metric})")
         return tool_impl.count_weather_days(
             ctx.deps, hub_id, metric, year, start_date, end_date
         )
@@ -233,6 +237,7 @@ def build_agent(model: str | None = None) -> Agent[Deps, AgentDraft]:
     @agent.tool
     def get_hub_alerts(ctx: RunContext[Deps], hub_id: str) -> dict[str, Any]:
         """Active National Weather Service alerts for one hub right now."""
+        ctx.deps.tools_called.append(f"get_hub_alerts({hub_id})")
         return tool_impl.get_hub_alerts(ctx.deps, hub_id)
 
     return agent
