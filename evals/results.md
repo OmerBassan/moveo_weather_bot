@@ -1,10 +1,10 @@
 # Evaluation results
 
 - **Model:** `default (anthropic:claude-sonnet-5)`
-- **Run:** 2026-09-27T22:21:46+00:00
+- **Run:** 2026-09-28T08:27:17+00:00
 - **Result:** 15/15 cases passed
-- **Wall time:** 196s total, 13.0s per case
-- **Tokens:** 298,817 in (261,986 from cache), 12,045 out
+- **Wall time:** 232s total, 15.5s per case
+- **Tokens:** 310,066 in (258,090 from cache), 13,872 out
 
 Every case runs through the same `run_turn` the `/chat` endpoint calls —
 same tools, same scoring engine, same live NWS alerts. There is no
@@ -16,21 +16,21 @@ grading.
 
 | Case | Category | Result | Checks | Time |
 | --- | --- | --- | --- | --- |
-| `rank_midwest_winter` | ranking | **PASS** | 8/8 | 14.0s |
-| `compare_miami_houston_hurricane` | comparison | **PASS** | 8/8 | 13.2s |
-| `compare_miami_houston_flood` | comparison | **PASS** | 8/8 | 11.3s |
-| `compare_miami_houston_both_hazards` | comparison | **PASS** | 9/9 | 14.5s |
-| `measure_denver_snow` | measurement | **PASS** | 4/4 | 12.3s |
-| `explain_dallas` | explanation | **PASS** | 8/8 | 32.3s |
-| `followup_flood_only` | follow-up | **PASS** | 8/8 | 9.6s |
-| `followup_top_component` | follow-up | **PASS** | 7/7 | 7.0s |
-| `unknown_hub` | refusal | **PASS** | 4/4 | 6.5s |
-| `out_of_scope_hazard` | refusal | **PASS** | 4/4 | 5.9s |
-| `ambiguous_portland` | clarification | **PASS** | 4/4 | 5.9s |
-| `portfolio_investment_shortlist` | investment | **PASS** | 9/9 | 26.4s |
-| `portfolio_tier_is_not_todays_score` | investment | **PASS** | 8/8 | 13.0s |
-| `measure_worst_snow_year` | measurement | **PASS** | 3/3 | 9.9s |
-| `out_of_scope_hurricane_where_fema_models_none` | scope | **PASS** | 7/7 | 13.7s |
+| `rank_midwest_winter` | ranking | **PASS** | 8/8 | 15.0s |
+| `compare_miami_houston_hurricane` | comparison | **PASS** | 8/8 | 12.9s |
+| `compare_miami_houston_flood` | comparison | **PASS** | 8/8 | 18.9s |
+| `compare_miami_houston_both_hazards` | comparison | **PASS** | 9/9 | 13.9s |
+| `measure_denver_snow` | measurement | **PASS** | 4/4 | 8.9s |
+| `explain_dallas` | explanation | **PASS** | 8/8 | 41.7s |
+| `followup_flood_only` | follow-up | **PASS** | 8/8 | 11.5s |
+| `followup_top_component` | follow-up | **PASS** | 7/7 | 12.8s |
+| `unknown_hub` | refusal | **PASS** | 4/4 | 6.0s |
+| `out_of_scope_hazard` | refusal | **PASS** | 4/4 | 6.9s |
+| `ambiguous_portland` | clarification | **PASS** | 4/4 | 4.8s |
+| `portfolio_investment_shortlist` | investment | **PASS** | 9/9 | 33.8s |
+| `portfolio_tier_is_not_todays_score` | investment | **PASS** | 8/8 | 10.0s |
+| `measure_worst_snow_year` | measurement | **PASS** | 3/3 | 17.5s |
+| `out_of_scope_hurricane_where_fema_models_none` | scope | **PASS** | 7/7 | 17.6s |
 
 ## What each check means
 
@@ -60,7 +60,20 @@ Intent: `rank`
 
 **Answer**
 
-> For winter hazard, the 10 Midwest hubs rank as follows (highest risk first): 1) Milwaukee, WI (65.2, High), 2) Minneapolis, MN (64.1, High, 1.1 pts behind leader), 3) Detroit, MI (60.9, High, 4.3 pts behind leader), 4) Chicago, IL (60.2, High, 5.0 pts behind leader), 5) Columbus, OH (55.9, Moderate, 9.3 pts behind leader), 6) Omaha, NE (55.7, Moderate), 7) Indianapolis, IN (55.1, Moderate), 8) Kansas City, MO (54.5, Moderate), 9) Des Moines, IA (54.0, Moderate), 10) St. Louis, MO (48.6, Moderate, 16.6 pts behind leader).
+> For winter disruption risk among the 10 Midwest hubs, the ranking (highest to lowest) is:
+> 
+> 1. Milwaukee, WI — risk score 65.2 (High)
+> 2. Minneapolis, MN — 64.1 (High), gap to leader 1.1
+> 3. Detroit, MI — 60.9 (High), gap to leader 4.3
+> 4. Chicago, IL — 60.2 (High), gap to leader 5.0
+> 5. Columbus, OH — 55.9 (Moderate), gap to leader 9.3
+> 6. Omaha, NE — 55.7 (Moderate)
+> 7. Indianapolis, IN — 55.1 (Moderate)
+> 8. Kansas City, MO — 54.5 (Moderate)
+> 9. Des Moines, IA — 54.0 (Moderate)
+> 10. St. Louis, MO — 48.6 (Moderate), gap to leader 16.6
+> 
+> Milwaukee, WI is the top-ranked hub, followed closely by Minneapolis, MN. For the top 5, the FEMA baseline (winter weather/cold wave exposure) is the dominant driver, contributing 77-89% of each score, with the historical snowfall record contributing the remainder. None of the top 4 have any active NWS winter alerts or near-term forecasted snowfall right now.
 
 | Check | Result | Detail |
 | --- | --- | --- |
@@ -81,7 +94,7 @@ Intent: `compare`
 
 **Answer**
 
-> Miami, FL and Houston, TX are tied for hurricane risk, both scoring 60.0 (High band), with a gap of 0.0 between them. Both hubs carry the maximum FEMA hurricane baseline (100.0/100), which accounts for the entire score since there are no active NWS hurricane alerts for either right now. Forecast wind gusts over the next 72 hours are 26.50 mph for Houston and 15.00 mph for Miami, both well below the 39 mph threshold where the forecast component starts contributing, so neither adds to the score currently. Miami currently has active alerts for Coastal Flood Advisory, Coastal Flood Statement, and a Rip Current Statement, and Houston has an Air Quality Alert — but none of these are hurricane-hazard alerts, so they don't affect this comparison.
+> Houston, TX and Miami, FL are tied on hurricane risk, both scoring 60.0 (High band). The gap between them is 0.0. Both hubs carry the maximum FEMA NRI hurricane baseline of 100.0/100, which drives 100% of each score, and neither currently has an active NWS alert for hurricane hazard. The live-condition component contributes 0 points for both: Houston's 72-hour forecast max wind gust is 26.50 mph and Miami's is 18.40 mph, both well below the 39 mph threshold where the forecast component starts scoring.
 
 | Check | Result | Detail |
 | --- | --- | --- |
@@ -102,12 +115,11 @@ Intent: `compare`
 
 **Answer**
 
-> Miami, FL ranks slightly higher for flood exposure, with a risk score of 72.9 (High band) versus Houston, TX at 71.2 (High band) -- a gap of 1.7 points.
+> Miami, FL ranks slightly higher for flood exposure with a risk score of 72.9 (High band), versus Houston, TX at 71.2 (also High band) — a gap of 1.7 points.
 > 
-> Miami's score is driven mainly by its FEMA baseline (99.7/100, averaging inland flooding 99.7 and coastal flooding 99.6), plus historical rainfall of 8.7 days/year with precipitation >=1.0 in, and currently has active alerts: Coastal Flood Advisory (Minor), Coastal Flood Statement (Minor), and Rip Current Statement (Moderate).
+> Miami's score is driven mainly by its FEMA baseline (99.7/100, mean of inland flooding=99.7 and coastal flooding=99.6), contributing 62% of its score, plus historical days (8.7 days/year with ≥1.0 in precipitation) and current active alerts (Coastal Flood Advisory, Coastal Flood Statement, Rip Current Statement).
 > 
-> Houston's score is also baseline-driven (91.6/100, inland flooding 100.0, coastal flooding 83.2), but its historical component is higher -- 24.1 days/year with precipitation >=1.0 in, maxing the historical scale at 100. Houston currently has no active flood alerts (only an unrelated Air Quality Alert).</answer>
-> <parameter name="caveats">["The historical component's 12-days/year anchor mapping to a score of 100 is a prototype assumption, not a measured relationship.", "The forecast component's 1-3 inch scoring bounds over 72 hours are also prototype assumptions.", "Live alert conditions (like Miami's current coastal flood alerts) can shift day to day and are not part of the structural/baseline exposure."]
+> Houston's score is driven by baseline 91.6/100 (inland flooding=100.0, coastal flooding=83.2, 58% of score) and a larger historical contribution: 24.1 days/year with ≥1.0 in precipitation (100/100 historical score, 42% of Houston's total), with no active flood alerts currently and no current-condition contribution.
 
 | Check | Result | Detail |
 | --- | --- | --- |
@@ -116,7 +128,7 @@ Intent: `compare`
 | `hazard` | pass | assessed ['flood'] |
 | `score_integrity` | pass | 2 score(s) verified |
 | `ranking_matches_engine` | pass | 1 hazard ranking(s) match |
-| `disclosure` | pass | 2 assumption(s), 0 uncertainty note(s) |
+| `disclosure` | pass | 2 assumption(s), 3 uncertainty note(s) |
 | `sources` | pass | FEMA National Risk Index v1.20.0 (December 2025), NWS active alerts, NWS quantitative gridpoint forecast, Open-Meteo ECMWF IFS reanalysis, 2021-01-01 to 2026-09-20 |
 | `groundedness` | pass | every figure traces to a tool result |
 
@@ -128,9 +140,9 @@ Intent: `compare`
 
 **Answer**
 
-> Hurricane: Houston, TX and Miami, FL are tied on hurricane risk, both scoring 60.0 ("High" band), driven entirely by their FEMA baseline (both 100/100 max hurricane exposure), with no current alerts scoring for this hazard at either hub. Forecast wind gusts over the next 72h are 26.50 mph for Houston and 15.00 mph for Miami, but neither crosses the 39 mph threshold that would add points.
+> Hurricane exposure: Houston, TX and Miami, FL are tied at 60.0 (High band) — both driven entirely by the FEMA baseline (100/100 max hurricane index), with no historical component used for this hazard. Houston is listed rank 1 only due to alphabetical tie-break; forecast wind gusts over the next 72h are 26.5 mph for Houston vs 18.4 mph for Miami, both well below the 39 mph threshold where scoring begins.
 > 
-> Flood: Miami, FL scores higher, 72.9 ("High"), vs Houston, TX at 71.2 ("High") — a gap of 1.7 points. Miami's baseline is 99.7/100 (mean of inland 99.7, coastal 99.6) and its historical component shows 8.7 qualifying precipitation days/year. Houston's baseline is lower (91.6/100, inland 100.0/coastal 83.2) but its historical component is higher — 24.1 qualifying days/year, which is the maximum score (100) on that measure. Miami currently has an active Coastal Flood Advisory adding a small current-conditions boost; Houston has no active flood alerts.
+> Flood exposure: Miami, FL scores 72.9 (High), just ahead of Houston, TX at 71.2 (High) — a gap of 1.7 points. Miami's score leans more on its FEMA baseline (99.7/100, 62% of its score) while Houston's leans more on historical rainfall frequency (24.1 days/year with ≥1in precipitation vs Miami's 8.7 days/year, giving Houston a maxed-out historical score of 100 vs Miami's 72.8). Miami currently has an active Coastal Flood Advisory contributing a small live-conditions boost; Houston has no active flood alerts.
 
 | Check | Result | Detail |
 | --- | --- | --- |
@@ -152,7 +164,7 @@ Intent: `measure`
 
 **Answer**
 
-> In 2025, Denver, CO had snowfall on 44 of 365 observed days, or 12.1% of the year. For context, 10 of those days (2.7%) met the higher "disruptive snowfall" threshold of at least 1.0 inch of fresh snow.
+> In 2025, Denver, CO had snowfall on 44 of 365 observed days — 12.1% of days.
 
 | Check | Result | Detail |
 | --- | --- | --- |
@@ -169,13 +181,11 @@ Intent: `explain`
 
 **Answer**
 
-> Dallas, TX's overall risk isn't uniformly high across hazards — it breaks down like this:
+> Dallas, TX's overall weather risk is driven mainly by flood exposure, which is Very High at 94.2/100 (rank 1 of 10 in the South, investment tier "Invest"). That score breaks down as: FEMA NRI inland flood baseline 99.6/100 (48% of the score), a historical component of 100/100 reflecting 15.6 days/year with ≥1.0 in of precipitation vs a 12-day anchor (32% of the score), and a current/forecast component of 77.5/100 driven by a 72-hour forecast of 2.55 in of precipitation (21% of the score).
 > 
-> - Flood: 74.8, band "High" — the biggest driver. It's built from a FEMA NRI inland flooding baseline of 99.6/100 (60% of the score) plus a historical component that's maxed out at 100 (15.6 qualifying-rain days/year vs. a 12-day anchor, 40% of the score). No active NWS flood alerts and forecast precipitation is only 0.97 in over the next 72h, so none of this score comes from current conditions. Dallas ranks 1 of 10 South hubs for flood risk.
-> - Winter: 51.2, band "Moderate" — driven almost entirely (98%) by the FEMA baseline (cold wave index 99.9/100), not by recent snowfall history (only 0.9 qualifying snow days/year) or current forecast (0 inches of snow expected).
-> - Hurricane: 44.1, band "Moderate" — entirely baseline-driven (FEMA hurricane index 73.6/100), with no historical component used for this hazard and no current wind alerts (forecast gust 31.1 mph).
+> By comparison, its winter risk is Moderate (51.2, ranked 2 of 10 in the South) and its hurricane risk is also Moderate (44.1, ranked 9 of 10 in the South) — both far lower than flood. Winter is driven almost entirely by the FEMA baseline (99.9/100 cold wave/winter weather exposure) with negligible current contribution, and hurricane risk comes entirely from the FEMA baseline (73.6/100) with no historical component used at all for that hazard.
 > 
-> So "high" mainly applies to flood risk; winter and hurricane sit at Moderate. Flood is also the only hazard where Dallas is flagged "Invest" tier; winter and hurricane are "Low" tier.
+> No active NWS alerts are in effect for any of the three hazards currently (only an "Air Quality Alert" of unknown severity, which is unrelated).
 
 | Check | Result | Detail |
 | --- | --- | --- |
@@ -183,7 +193,7 @@ Intent: `explain`
 | `hub_coverage` | pass | 1 hub(s) assessed |
 | `score_integrity` | pass | 3 score(s) verified |
 | `ranking_matches_engine` | pass | 3 hazard ranking(s) match |
-| `disclosure` | pass | 7 assumption(s), 3 uncertainty note(s) |
+| `disclosure` | pass | 7 assumption(s), 4 uncertainty note(s) |
 | `sources` | pass | FEMA National Risk Index v1.20.0 (December 2025), NWS active alerts, NWS quantitative gridpoint forecast, Open-Meteo ECMWF IFS reanalysis, 2021-01-01 to 2026-09-20 |
 | `groundedness` | pass | every figure traces to a tool result |
 | `expected_phrasing` | pass | found ['baseline', 'fema', 'flood', 'historical'] |
@@ -196,7 +206,7 @@ Intent: `compare`
 
 **Answer**
 
-> For flooding, Miami, FL ranks higher with a risk score of 72.9 (High band) versus Houston, TX at 71.2 (High band) — a gap of 1.7 points. Both are driven mainly by their FEMA baseline: Miami's flood baseline is 99.7/100 (mean of inland 99.7, coastal 99.6), while Houston's is 91.6/100 (inland 100.0, coastal 83.2). Historically, Houston sees more qualifying heavy-precipitation days: 24.1 days/year (vs. a 12-day anchor) contributing 30.0 points, compared to Miami's 8.7 days/year contributing 21.8 points. Currently, Miami has an active Coastal Flood Advisory adding 6.2 points to its score, while Houston has no active flood alerts, contributing 0 from current conditions. Forecast precipitation over the next 72 hours is 0.49 in for Miami and 0.04 in for Houston.
+> For flood risk, Miami, FL ranks first with a score of 72.9 (High band), and Houston, TX is second at 71.2 (High band) -- a gap of 1.7 points. Miami's score is driven mainly by its FEMA baseline (99.7/100, 62% of its score) plus a historical average of 8.7 qualifying precipitation days/year, and a currently active Coastal Flood Advisory adding 6.2 points. Houston's baseline is 91.6/100 (58% of its score), but its historical component is stronger: 24.1 days/year with precipitation >= 1 inch, maxing that component at 100 (30 of the 71.2 total points). Houston has no active flood-hazard alert right now.
 
 | Check | Result | Detail |
 | --- | --- | --- |
@@ -213,20 +223,18 @@ Intent: `compare`
 
 > Which component contributed most?
 
-Intent: `compare`
+Intent: `explain`
 
 **Answer**
 
-> For both hubs, the baseline component contributed the most. For Miami, FL, baseline contributed 44.8 pts (62% of its 72.9 score). For Houston, TX, baseline contributed 41.2 pts (58% of its 71.2 score).</answer>
-> <parameter name="caveats">[]</parameter>
-> <parameter name="interpretation">[]
+> For both hubs, the FEMA baseline component contributed the most. For Miami, FL, baseline contributed 44.8 points (62% of its 72.9 score), from a baseline of 99.7/100. For Houston, TX, baseline contributed 41.2 points (58% of its 71.2 score), from a baseline of 91.6/100.
 
 | Check | Result | Detail |
 | --- | --- | --- |
-| `intent` | pass | got 'compare', expected one of ('explain', 'compare', 'rank') |
+| `intent` | pass | got 'explain', expected one of ('explain', 'compare', 'rank') |
 | `score_integrity` | pass | 2 score(s) verified |
 | `ranking_matches_engine` | pass | 1 hazard ranking(s) match |
-| `disclosure` | pass | 2 assumption(s), 0 uncertainty note(s) |
+| `disclosure` | pass | 2 assumption(s), 2 uncertainty note(s) |
 | `sources` | pass | FEMA National Risk Index v1.20.0 (December 2025), NWS active alerts, NWS quantitative gridpoint forecast, Open-Meteo ECMWF IFS reanalysis, 2021-01-01 to 2026-09-20 |
 | `groundedness` | pass | every figure traces to a tool result |
 | `expected_phrasing` | pass | found ['baseline'] |
@@ -239,7 +247,7 @@ Intent: `out_of_scope`
 
 **Answer**
 
-> There is no Reykjavik hub in this network — the system covers 40 distribution hubs across the United States, and Reykjavik is not one of them. I can't provide a winter exposure figure for it.
+> There is no Reykjavik hub in this network — the system covers 40 U.S. distribution hubs, and Reykjavik is not one of them, so I cannot report a winter exposure figure for it.
 
 | Check | Result | Detail |
 | --- | --- | --- |
@@ -256,7 +264,7 @@ Intent: `out_of_scope`
 
 **Answer**
 
-> This system does not cover wildfire risk. It only scores three hazards: winter storms, hurricanes, and flooding, across 40 distribution hubs. I can't provide a wildfire risk ranking.
+> Wildfire risk is not something this system covers. It only scores winter, hurricane, and flood exposure for the 40 distribution hubs.
 
 | Check | Result | Detail |
 | --- | --- | --- |
@@ -273,7 +281,7 @@ Intent: `clarify`
 
 **Answer**
 
-> There are two Portland hubs in the network — Portland, ME and Portland, OR — and they would have different risk profiles.
+> Please clarify which Portland you mean.
 
 | Check | Result | Detail |
 | --- | --- | --- |
@@ -290,11 +298,24 @@ Intent: `portfolio`
 
 **Answer**
 
-> The portfolio tool groups all 40 hubs into three tiers by structural (persistent) exposure. 28 hubs fall in the "Invest" tier — the top of that group, in order, is: Boston, MA (rank 1, structural score 93.7, driven by winter/hurricane/flood), New York, NY (rank 2, structural 98.8, hurricane/flood), Houston, TX (rank 3, structural 100.0, hurricane/flood), Miami, FL (rank 4, structural 100.0, hurricane/flood), New Orleans, LA (rank 5, structural 99.7, hurricane/flood), then Hartford CT, Newark NJ, Salt Lake City UT, Portland ME, Dallas TX, and 18 more hubs continuing down to Charlotte, NC at rank 28.
+> The portfolio priority tool groups all 40 hubs into three tiers of STRUCTURAL exposure (FEMA baseline + historical record; live weather excluded). 28 hubs fall in the "Invest" tier, 4 in "Watch," and 8 in "Low."
 > 
-> Note: New York, NY currently carries a higher live risk_score (83.5, "Very High") than Boston, MA (56.3) despite ranking below it — Boston still ranks first because the tier ordering is built on structural exposure, not the current live score.
+> Top of the Invest tier, in order:
+> 1. Boston, MA (driven by winter, hurricane, flood; structural score 93.7)
+> 2. New York, NY (hurricane, flood; structural score 98.8)
+> 3. Houston, TX (hurricane, flood; structural score 100.0)
+> 4. Miami, FL (hurricane, flood; structural score 100.0)
+> 5. New Orleans, LA (hurricane, flood; structural score 99.7)
+> 6. Hartford, CT (winter, hurricane; structural score 93.2)
+> 7. Newark, NJ (hurricane, flood; structural score 91.8)
+> 8. Salt Lake City, UT (winter; structural score 97.7)
+> 9. Portland, ME (winter; structural score 85.1)
+> 10. Dallas, TX (flood; structural score 99.7)
+> ...continuing through rank 28 (Charlotte, NC).
 > 
-> Beyond Invest, 3 hubs sit in a "Watch" tier (Providence RI, Phoenix AZ, Las Vegas NV) and 9 in "Low" (Columbus OH, Pittsburgh PA, Omaha NE, Indianapolis IN, Des Moines IA, Los Angeles CA, Portland OR, Seattle WA, Sacramento CA).
+> Notably, several hubs ranked lower in the Invest tier or even in the "Watch" tier currently carry HIGHER live risk_scores than hubs ranked above them. For example, Dallas, TX sits at rank 10 in the Invest tier but has a risk_score of 94.2 ("Very High"), higher than Boston, MA's risk_score of 56.3 at rank 1. Similarly, Providence, RI (Watch tier, risk_score 80.7) and Omaha, NE (Watch tier, risk_score 79.8) currently score higher than most of the Invest tier. This is expected: the tier reflects persistent structural exposure that an upgrade would act on, while risk_score also reflects current/forecast conditions that will pass.
+> 
+> The "Watch" tier (Providence RI, Omaha NE, Phoenix AZ, Las Vegas NV) and "Low" tier (Columbus OH, Pittsburgh PA, Indianapolis IN, Des Moines IA, Los Angeles CA, Portland OR, Seattle WA, Sacramento CA) sit outside the top structural-exposure group within this 40-hub network.
 
 | Check | Result | Detail |
 | --- | --- | --- |
@@ -316,7 +337,7 @@ Intent: `portfolio`
 
 **Answer**
 
-> No. Boston, MA sits at rank 1 in the Invest tier, but its current risk_score is 56.3 ("Moderate"). New York, NY at rank 2 carries a higher current risk_score of 83.5 ("Very High"). Several other hubs further down the Invest list also have higher risk_scores than Boston's 56.3, e.g. Salt Lake City, UT (78.2), Portland, ME (68.1), and Dallas, TX (74.8).
+> No. Boston, MA is ranked first in the portfolio's structural-exposure tiering, but it is not the hub with the highest live risk_score. Boston's current risk_score is 56.3, while other hubs -- such as Dallas, TX (94.2) -- currently show a much higher risk_score. The portfolio ranking is built from structural exposure (FEMA baseline + historical average) with live conditions excluded, so top structural rank and top current risk_score are different questions and can point to different hubs.
 
 | Check | Result | Detail |
 | --- | --- | --- |
@@ -327,7 +348,7 @@ Intent: `portfolio`
 | `disclosure` | pass | 24 assumption(s), 2 uncertainty note(s) |
 | `sources` | pass | FEMA National Risk Index v1.20.0 (December 2025), NWS active alerts, NWS quantitative gridpoint forecast, Open-Meteo ECMWF IFS reanalysis, 2021-01-01 to 2026-09-20 |
 | `groundedness` | pass | every figure traces to a tool result |
-| `expected_phrasing` | pass | found ['current'] |
+| `expected_phrasing` | pass | found ['structural', 'live', 'current'] |
 
 ### `measure_worst_snow_year` — PASS
 
@@ -337,7 +358,7 @@ Intent: `measure`
 
 **Answer**
 
-> Minneapolis, MN's worst complete year for snow disruption (days with at least 1.0 inch of fresh snow) was 2023, with 16 such days. Across the 5 complete years in the record (2021-2025), the mean was 10.0 days per year, so 2023 came in 60% above the average year. Other years: 2021 had 8 days, 2022 had 12, 2024 had 6, and 2025 had 8. (2026 is a partial year with 4 days so far and is excluded from this comparison.)
+> Minneapolis, MN's worst complete year for snow disruption (days with at least 1.0 inch of fresh snow) was 2023, with 16 such days. Across the 5 complete years on record (2021-2025), the mean was 10.0 days per year, so 2023 was 60.0% above that average. Year-by-year counts were: 2021: 8 days, 2022: 12 days, 2023: 16 days, 2024: 6 days, 2025: 8 days. (2026 has 4 days so far but is a partial year and excluded from these comparisons.)
 
 | Check | Result | Detail |
 | --- | --- | --- |
@@ -353,7 +374,7 @@ Intent: `explain`
 
 **Answer**
 
-> Boise, ID currently has a hurricane risk score of 0.0 ("Very Low" band). FEMA's National Risk Index does not model hurricane exposure for Boise's county at all, so there is no structural baseline component to score. The only input available is current conditions: no active NWS hurricane-related alerts and a forecast max wind gust of 21.90 mph over the next 72 hours (well below the 39 mph threshold where scoring begins). Because no structural component could be measured, Boise is not assigned an investment tier for hurricane risk.
+> No — Boise, ID currently has a hurricane risk score of 0.0 ("Very Low" band). FEMA's National Risk Index does not model hurricane exposure at all for Boise's county, so there is no structural baseline component. The score is built entirely from current conditions: there are no active NWS alerts for this hazard and the forecast max wind gust over the next 72 hours is 20.7 mph, well below the 39 mph threshold where the forecast component starts scoring. Boise ranks 2nd of 10 hubs in the West region for hurricane risk, but that ranking is not meaningful for investment purposes since it has no measurable structural exposure.
 
 | Check | Result | Detail |
 | --- | --- | --- |

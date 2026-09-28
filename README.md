@@ -15,8 +15,12 @@ question, chooses the tools, and explains the result. Its output schema has no
 score field and no rank field, so a model-generated number cannot be
 represented — there is no code path by which one reaches a user.
 
-See [`docs/architecture.md`](docs/architecture.md) for the design, the scoring
-methodology, the system prompt, the evaluation results and the tradeoffs.
+**[`docs/DESIGN.md`](docs/DESIGN.md) is the design document the brief asks for** —
+architecture, repository structure, data storage, scoring methodology, why an
+LLM is needed, the system prompt, the evaluation results and the tradeoffs, one
+short section each. [`docs/architecture.md`](docs/architecture.md) is the same
+material at full length: the reasoning, the rejected alternatives and the
+measurements behind every decision.
 
 ## What is and isn't here
 
@@ -238,11 +242,11 @@ Set `WRA_LOG_LEVEL=DEBUG` for more, `WRA_TURN_LOG` to relocate the file.
 ## Verify it
 
 ```bash
-# 178 unit tests: scoring arithmetic, renormalisation, registry, tool payloads,
+# 190 unit tests: scoring arithmetic, renormalisation, registry, tool payloads,
 # a 120-score golden baseline, the alerting diff, and the UI's rendering
 .venv/Scripts/python.exe -m pytest tests/ -q
 
-# 15 evaluation cases through the real pipeline (costs API calls, ~3 min)
+# 15 evaluation cases through the real pipeline (costs API calls, ~4 min)
 .venv/Scripts/python.exe -m evals.run_evals
 
 # the same suite against a different model
@@ -288,7 +292,7 @@ data/                 hub registry + three frozen snapshots (committed)
 scripts/              one-off fetchers that built those snapshots, a verifier,
                       and the risk-change check
 evals/                15 cases, deterministic checks, harness, report
-tests/                178 unit tests, incl. a 120-score golden baseline
+tests/                190 unit tests, incl. a 120-score golden baseline
 docs/                 architecture.md (the design document), DEPLOYMENT.md
 docker/               one Dockerfile per service
 ui/streamlit_app.py   the chat UI. A client of /chat; imports nothing of ours.
