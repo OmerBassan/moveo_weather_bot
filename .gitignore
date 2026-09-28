@@ -28,3 +28,8 @@ evals/results.json
 
 # The raw screen capture (91 MB). The compressed copy is committed at docs/demo.mp4.
 screen_recording.mp4
+
+# Not part of the submission: the brief itself, and the instructions that
+# steered the work. Both stay on disk; neither belongs in what a reviewer reads.
+ASSIGNMENT.pdf
+CLAUDE.md
