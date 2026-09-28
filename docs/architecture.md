@@ -17,11 +17,11 @@ the rest is the evidence.*
 
 | | |
 |---|---|
-| **What it does** | Scores and ranks 40 US hubs for winter, hurricane and flood disruption, and answers questions about them conversationally. |
+| **What it does** | Scores and ranks 40 US hubs for winter, hurricane and flood disruption, tiers them for annual resilience investment, and answers questions about them conversationally. |
 | **The claim** | The LLM never produces a number. Its output schema has no score field, so a fabricated score is not representable — there is nothing for a validator to catch. |
 | **How scores are built** | `baseline` (FEMA NRI) + `historical` (5-yr reanalysis) + `current` (live NWS alerts), weighted per hazard, renormalised over whatever is actually measurable, with every omission disclosed. |
 | **Data** | Three committed JSON snapshots. Only NWS alerts are live — the only input that changes between questions. No database. |
-| **Evaluation** | 11 cases through the real pipeline. No LLM judge. Every score independently recomputed and compared. 11/11 on Sonnet 5 and Haiku 4.5. |
+| **Evaluation** | 15 cases through the real pipeline. No LLM judge. Every score and every ordering independently recomputed and compared. |
 | **Why an LLM** | Follow-ups have no subject — *"what about flooding only?"* names no hub. Resolving that, and declining cleanly on the 3,160 counties and 15 hazards the system does *not* cover, is the work. |
 
 **The five decisions worth arguing with**
@@ -31,8 +31,10 @@ the rest is the evidence.*
 3. **Two definitions of a snow day** (§4). The literal question and the risk model need different thresholds, and both answers are correct.
 4. **Absent ≠ zero** (§4). Imputing 0 for an unmodelled hazard silently calls it safe. Renormalise and disclose.
 5. **Remove the affordance, don't police it** (§1). No score field, gaps pre-computed, component shares stated. The third of those was added *because* Haiku 4.5 divided 44.8/73.1 itself and the eval caught it.
+6. **The investment tier is relative to the network, not to an absolute band** (§4b). The absolute version tiered 88 of 112 pairs as `Invest`, because FEMA's NRI is loss-weighted and every hub here is a major metro county. Measured, then replaced.
+7. **The portfolio is ordered by tier, never by score across hazards** (§4c). Ordering the shortlist by raw structural score put all ten winter-only hubs below every flood hub — comparing distributions, not hubs.
 
-**Known to be missing:** no forecast component, weights are unfitted assumptions, conversations are in-memory. Full list in §9.
+**Known to be missing:** weights and the Invest boundary are unfitted assumptions, conversations are in-memory, and no eval case covers the change-detection tool (§9). Full list in §9.
 
 ---
 
@@ -311,6 +313,166 @@ a test over every hub and hazard.
 
 ---
 
+## 4b. The investment reading
+
+The assignment's decision is not *"how exposed is this hub today"*. It is:
+
+> *"Each year we choose a handful of hubs to invest in resilience upgrades."*
+
+That is annual capital allocation, and the score above cannot answer it alone.
+
+### The problem: the score cannot tell an investment case from a Tuesday
+
+`current` carries 0.20 for winter, 0.25 for flood and **0.40 for hurricane**. So
+a storm passing through raises a hub it will leave. Correct as *risk*, wrong as
+an *investment signal* — and eight hubs make it concrete rather than theoretical.
+
+FEMA models no hurricane risk for Minneapolis, Denver, Seattle, Portland OR,
+Salt Lake City, Sacramento, Boise and Reno. Hurricane also has no historical
+component (§4). So for those eight, **the entire hurricane score is the live wind
+reading**:
+
+| Boise, ID — hurricane | score | band |
+|---|---|---|
+| calm weather | 0.0 | Very Low |
+| one Severe wind alert | 75.0 | High |
+
+Nothing structural moves in between. Under a plain ranking, a stormy Boise (75)
+outranks a calm Miami (60) for hurricane investment — exactly backwards.
+
+### The split
+
+Two derived readings on every `HazardScore`, computed by the same
+`_renormalise` helper that produces the headline score, so they cannot drift
+from it:
+
+| | components | moves with the weather? |
+|---|---|---|
+| `structural_score` | `baseline` + `historical` | **no** |
+| `transient_score` | `current` | yes |
+
+`structural_score` is `None`, never `0.0`, when nothing structural was measured.
+Zero would assert "no persistent exposure"; falling back to the total would let
+the transient component *become* the structural one, which is the precise
+inversion this reading exists to expose.
+
+For Miami's hurricane: structural **100.0**, total **60.0**. The total is lower
+only because today is calm.
+
+### Tiers, and why they are relative to the network
+
+`Invest` / `Watch` / `Low`, from `structural_score` alone.
+
+The first attempt used the existing band boundaries — structural in `High` or
+`Very High`. **Measured, it tiered 88 of 112 hub-hazard pairs as Invest** (winter
+33/40, flood 35/40). A shortlist holding five hubs out of six is not a shortlist.
+
+The cause is what the FEMA baseline measures. The NRI risk index is
+*loss-weighted* and ranked against every US county, so it rises with population
+and built value. Every hub here is a major metro county, which puts the whole
+network in the national top tail by construction — inland flooding across these
+40 hubs has a median of **98.5** and a *minimum* of **72.3**. Against that
+distribution, "structural ≥ 60" resolves to "is a major US metro", which all of
+them are.
+
+Tightening to `Very High` only was rejected too: winter 5, hurricane 15, flood
+23. A cross-hazard shortlist would fill with flood hubs because flood's NRI
+values are compressed at the top — an artifact of the national distribution, not
+a finding about risk.
+
+**Ranking within the network fixes both.** Invest is the top third for that
+hazard, which discriminates evenly by construction (13 / 10 / 13) — and that
+evenness is precisely what makes a cross-hazard tier legitimate rather than a
+comparison of differently-shaped distributions. It also states the claim the
+decision needs: this analyst is choosing among *these* hubs, so "top third of
+the network for this hazard" is both weaker and truer than "above 60
+nationally".
+
+| tier | rule |
+|---|---|
+| `Invest` | structural score in this network's top third for the hazard, ties at the boundary included |
+| `Watch` | outside Invest, but current conditions in `High` or `Very High` |
+| `Low` | neither |
+| not tierable | no structural component could be measured |
+
+The cutoff is computed over the **whole network** from the frozen snapshots, not
+over whichever hubs a question mentioned. Structural scores read no live data,
+so the boundary is a property of the record — and asking about two hubs must not
+give a hub a different tier than asking about forty.
+
+**The cost, stated rather than hidden:** the tier is a relative standing. An
+`Invest` hub is not thereby claimed to be at risk in absolute terms, and adding
+or removing hubs can move the boundary. Every response carries that.
+
+### 4c. The cross-hazard portfolio
+
+`rank_hubs_by_risk` takes one required hazard, so *"which handful should we
+invest in"* previously had no deterministic answer — three rankings merged by
+hand, or by the model, which is the one thing the engine exists to prevent.
+`engine.rank_portfolio` answers it in one call.
+
+**Ordered by tier first, and that is the whole design.** Sorting by score would
+compare a two-component hurricane score against a three-component winter one,
+which `describe_methodology` explicitly disclaims. The tier is ordinal and
+hazard-independent, so it can carry a cross-hazard ordering that the scores
+cannot.
+
+Within a tier, two hazard-neutral criteria:
+
+1. **How many hazards put the hub in this tier.** A count — no magnitudes
+   compared. Boston is `Invest` on all three and leads the list.
+2. **Exceedance over that hazard's own cutoff** (`structural / cutoff`).
+
+The second exists because of a measured failure. Ordering the Invest group by
+*raw* structural score compared distributions rather than hubs: winter's cutoff
+is 73.7 and flood's 87.9, so **all ten winter-only hubs sorted below every flood
+hub**, and Salt Lake City — the most structurally exposed winter hub in the
+network — landed ninth behind single-hazard flood hubs. Dividing by each
+hazard's own cutoff compares each hub against the distribution it belongs to.
+
+`gap_to_leader` and `gap_to_next` are **absent** on a portfolio row. They exist
+so the model never subtracts two scores, but here the two scores can come from
+different hazards with different component sets — handing over a pre-computed
+cross-hazard difference would *manufacture* the comparison the portfolio
+refuses to make.
+
+**The shortlist is the engine's, not the model's selection from it.** Asked for
+"the top three", Sonnet 5 filled `hub_ids` with three hubs despite the schema
+saying to leave it empty. `assemble` ignores `hub_ids` for a portfolio: the
+ordering would still have been the engine's, but *which* hubs reached the table
+would have been the model's — and a cherry-picked subset in the right relative
+order passes every ordering check there is. A region filter is honoured, because
+it narrows the question rather than answering it.
+
+### 4d. Year-by-year exposure
+
+The historical component is a five-year **mean**. Resilience is not sized for
+the average year.
+
+`climatology.count_days_by_year` reports each year separately, plus the worst
+complete year and how far above the mean it sat. Minneapolis:
+8, 12, 16, 6, 8 disruptive snow days — worst year 16 against a 10.0 mean, **60%
+above**. That is an investment argument the mean cannot make.
+
+Two rules, both enforced in code:
+
+- **Complete years only** for anything derived. The window ends mid-year, and
+  for a seasonal variable the missing months are not a random sample. The
+  partial year is still reported, with the caveat.
+- **Never compare years via `days_per_year`.** It scales to 365, which would
+  inflate a nine-month partial year into a fictional twelve.
+
+**The trend is reportage and never reaches a score.** A least-squares slope over
+five annual counts is the same claim this project already deleted a scoring
+component for (§4, hurricane): five years cannot separate a trend from ordinary
+variation. It is reported as a number rather than a label — "rising" needs a
+cutoff there is no basis for — it returns `None` below five complete years, and
+it carries the objection with it. Minneapolis's slope is −0.60 days/year on a
+visibly jagged series, which is exactly why no label was invented for it.
+
+
+---
+
 ## 5. Why an LLM is needed
 
 A dashboard can already answer *"what is Milwaukee's winter score?"*. The
@@ -502,11 +664,13 @@ instead of breaking the suite.
 
 | Model | Pass | Input tokens | Cached | Output | Wall time |
 |---|---|---|---|---|---|
-| `claude-sonnet-5` | **10/10** | 113,627 | 95,016 (84%) | 6,712 | 101s |
-| `claude-haiku-4-5` | **10/10** | 93,009 | 8,654 | 4,222 | 61s |
+| `claude-sonnet-5` | **15/15** | 298,817 | 261,986 (88%) | 12,045 | 196s |
 
-Full output: [`evals/results.md`](../evals/results.md),
-[`evals/results_haiku.md`](../evals/results_haiku.md).
+Full output: [`evals/results.md`](../evals/results.md).
+
+An earlier 10-case build also passed 10/10 on `claude-haiku-4-5`; that run is
+not reproduced here because the suite has since grown to 15 cases, and quoting
+a pass rate from a different case set would overstate what was verified.
 
 ### What the suite actually caught
 
@@ -605,10 +769,19 @@ Stated so a reviewer does not have to discover them.
 - **Groundedness reads digits only.** A number written as a word ("forty-four")
   is invisible to the check. It never flags a correct number written that way —
   it just cannot see it.
-- **No forecast component.** The `current` component uses active alerts, not the
-  NWS forecast grid. A hub with a severe forecast but no issued alert scores 0
-  there. Alerts were chosen because severity is a clean enumeration that maps to
-  a score without judgement; forecast text is not.
+- **The Invest boundary is a judgement, like the weights.** "The top third of
+  the network" is a presentation choice about how many candidates to surface, not
+  a measured threshold — there is no outcome data to fit one against. It is
+  defended in §4b only as better than the alternatives that were measured.
+- **The tier is a relative standing.** An `Invest` hub is not claimed to be at
+  risk in absolute terms, and adding or removing hubs can move the boundary.
+  Every portfolio response says so.
+- **The five-year slope is reportage, not a signal.** It cannot separate a trend
+  from ordinary variation, so it never reaches a score or a tier (§4d).
+- **No eval case covers `what_changed`.** Its figures (`previous_score`,
+  `delta`) exist on no `HubAssessment`, so `check_groundedness` cannot whitelist
+  them and a case quoting them would fail on correct output. Plumbing an
+  allow-set for one tool was judged worse than recording the gap here.
 - **Hurricane scores compress.** With no historical component and no active
   tropical alerts, Gulf and Florida hubs cluster near 60. That is honest — FEMA
   rates several at the maximum — but it discriminates less than winter or flood.
@@ -624,10 +797,14 @@ Stated so a reviewer does not have to discover them.
 
 In order of value, not of effort:
 
-1. **A forecast component**, so a hub can be flagged before an alert is issued.
-2. **Calibrate one weight against something real** — even a small record of
-   actual hub closures would move the weights from defensible to measured.
-3. **Persist conversations**, if the tool ever leaves demo use.
-4. **The webhook/alerting bonus.** The architecture is ready for it: scores are
-   a pure function of frozen data plus live alerts, so a scheduled re-score and
-   a diff against the previous run is a small job, not a new system.
+1. **Calibrate one weight against something real** — even a small record of
+   actual hub closures would move the weights, and the Invest boundary, from
+   defensible to measured. This is the single highest-value change.
+2. **A hazard-intensity baseline alongside the loss-weighted one.** The NRI's
+   population weighting is what forced the Invest tier to be network-relative
+   (§4b); a per-county hazard-frequency index would let the tier make an
+   absolute claim.
+3. **Extend the historical window past five years.** It would let the trend in
+   §4d become a signal rather than reportage, and might let hurricane regain a
+   historical component.
+4. **Persist conversations**, if the tool ever leaves demo use.

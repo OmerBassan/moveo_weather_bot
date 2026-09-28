@@ -1,7 +1,12 @@
 # Weather Risk Intelligence Agent
 
-Ranks 40 US distribution hubs by weather disruption exposure, so an analyst can
-decide where a limited resilience budget goes.
+Ranks 40 US distribution hubs by weather disruption exposure and tiers them
+for annual resilience investment, so an analyst can decide where a limited
+budget goes.
+
+It separates a hub's **structural** exposure -- what an upgrade could act on --
+from the **transient** weather that moves its score this week, because a storm
+passing through raises a hub it will leave.
 
 **The language model does not compute the risk.** A deterministic engine scores
 and ranks every hub from FEMA hazard baselines, a five-year weather
@@ -12,6 +17,39 @@ represented — there is no code path by which one reaches a user.
 
 See [`docs/architecture.md`](docs/architecture.md) for the design, the scoring
 methodology, the system prompt, the evaluation results and the tradeoffs.
+
+## What is and isn't here
+
+Against the brief's optional items, stated up front rather than left to be
+discovered:
+
+| | |
+|---|---|
+| **Deployed URL** | **Not done.** The brief calls it "preferred, but not mandatory". It runs locally in one command (below) or under Docker Compose, and both paths are verified. [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) describes a hosted path end to end. |
+| **Voice** | **Not done.** Listed as a bonus. The effort went into the deterministic engine and the evaluation instead. |
+| **Scheduled / webhook alerting** | **Done** — the other bonus. See [Risk-change alerting](#risk-change-alerting-the-bonus). |
+| **Demo recording** | [`docs/demo.mp4`](docs/demo.mp4) — 3 minutes, silent. Stands in for a hosted URL. |
+
+The recording covers the first five turns of a single conversation: the Midwest
+winter ranking, why Minneapolis places where it does, the two-threshold snowfall
+answer, a Minneapolis/Chicago comparison, and the refusal when asked to drop the
+historical component and re-weight the score.
+
+Where each required item lives, for a reviewer who wants to go straight to it:
+
+| Requirement | Where |
+|---|---|
+| Public APIs for weather and hazard data | FEMA NRI + Open-Meteo reanalysis, fetched once into [`data/`](data/); live NWS alerts and forecasts in [`app/tools/nws.py`](app/tools/nws.py) |
+| Deterministic scoring / ranking | [`app/scoring/engine.py`](app/scoring/engine.py), weights as data in [`weights.yaml`](app/scoring/weights.yaml) |
+| Chat interface | [`ui/streamlit_app.py`](ui/streamlit_app.py) — an HTTP client of `/chat`, importing nothing else of ours |
+| Agent behind an API the UI calls | `POST /chat` in [`app/api.py`](app/api.py); see [The API](#the-api) |
+| Enforced JSON schema between LLM and code | [`app/agent/contract.py`](app/agent/contract.py): `AgentDraft` (untrusted) → `AgentResponse` (trusted) |
+| Conversational follow-ups | Per-conversation message history in `app/api.py`, trimmed in [`app/agent/runner.py`](app/agent/runner.py) |
+| Evaluation set and a way to run it | 15 cases in [`evals/`](evals/), `python -m evals.run_evals`, results in [`evals/results.md`](evals/results.md) |
+| Assumptions, uncertainty, scoping | Separate fields on every response, surfaced in the UI; [§9](docs/architecture.md) for limitations |
+
+Conversations are held in memory, so restarting the API clears them. Known
+limitations are listed in full in [§9 of the design document](docs/architecture.md).
 
 ---
 
@@ -63,6 +101,13 @@ What percentage of days in Denver last year had snowfall?
 Why is the Dallas hub's weather disruption risk high?
 ```
 
+And the question the brief's framing is really about — which hubs deserve this
+year's resilience budget:
+
+```
+Which hubs should we prioritise for resilience investment this year?
+```
+
 Then a follow-up, which uses conversation context:
 
 ```
@@ -77,6 +122,46 @@ How exposed is our Reykjavik hub?      -> out of scope, not a hub we cover
 Which hubs face the worst wildfire?    -> out of scope, hazard not modelled
 How risky is Portland?                 -> asks which Portland, ME or OR
 ```
+
+---
+
+## The API
+
+The UI is a client of the API, not of the agent. `POST /chat` is the whole
+surface it uses:
+
+```bash
+curl -s http://localhost:8000/chat -H 'content-type: application/json' -d '{
+  "message": "Which hubs in the Midwest are most exposed to winter disruption?",
+  "conversation_id": "demo-1"
+}'
+```
+
+The response is a declared Pydantic model, so its shape is in the OpenAPI
+schema at `http://localhost:8000/docs` rather than implied by whatever the
+handler happened to build:
+
+```json
+{
+  "answer": "...",
+  "intent": "rank",
+  "interpretation_of_question": "...",
+  "assessments": [{"hub": "Minneapolis, MN", "hazard": "winter",
+                   "risk_score": 68.4, "risk_band": "High", "rank": 1,
+                   "main_drivers": ["..."], "evidence": ["..."]}],
+  "interpretation": [], "assumptions": [], "uncertainty": [], "sources": [],
+  "clarification_question": null, "out_of_scope_reason": null,
+  "conversation_id": "demo-1", "usage": {}
+}
+```
+
+`risk_score`, `risk_band` and `rank` are joined in from the engine after the
+model has answered. The model chooses *which* hubs and *which* hazard; it never
+supplies a number.
+
+The rest of the surface: `GET /hubs` (the registry), `GET /methodology` (weights
+and thresholds, the same data the agent reads), `POST /alerts/check`,
+`GET /observability`, `GET /health`.
 
 ---
 
@@ -153,10 +238,11 @@ Set `WRA_LOG_LEVEL=DEBUG` for more, `WRA_TURN_LOG` to relocate the file.
 ## Verify it
 
 ```bash
-# 54 unit tests: scoring arithmetic, renormalisation, registry, token budgets
+# 178 unit tests: scoring arithmetic, renormalisation, registry, tool payloads,
+# a 120-score golden baseline, the alerting diff, and the UI's rendering
 .venv/Scripts/python.exe -m pytest tests/ -q
 
-# 10 evaluation cases through the real pipeline (costs API calls, ~100s)
+# 15 evaluation cases through the real pipeline (costs API calls, ~3 min)
 .venv/Scripts/python.exe -m evals.run_evals
 
 # the same suite against a different model
@@ -166,8 +252,10 @@ Set `WRA_LOG_LEVEL=DEBUG` for more, `WRA_TURN_LOG` to relocate the file.
 .venv/Scripts/python.exe -m scripts.verify_snapshots
 ```
 
-Results land in [`evals/results.md`](evals/results.md). Both Sonnet 5 and
-Haiku 4.5 currently pass 10/10.
+Results land in [`evals/results.md`](evals/results.md). Sonnet 5 currently
+passes 15/15. Every score, every ranking and the cross-hazard investment
+ordering are recomputed independently from the engine and compared -- there is
+no LLM judge.
 
 ---
 
@@ -175,26 +263,33 @@ Haiku 4.5 currently pass 10/10.
 
 ```
 app/
-  api.py              FastAPI: /chat, /hubs, /methodology, /health
+  api.py              FastAPI: /chat, /hubs, /methodology, /alerts/check,
+                      /observability, /health
   config.py           the one typed configuration construction site
   hubs.py             hub registry, validated on load
   http_client.py      one HTTP client, retry policy per upstream
+  observability.py    per-turn record, cost rate table, turn log
   agent/
     contract.py       AgentDraft (untrusted) -> AgentResponse (trusted)
     prompt.py         the system prompt, verbatim
     runner.py         agent wiring, model settings, assembly
-    tools.py          the five typed tools the agent may call
+    tools.py          the nine typed tools the agent may call
+  alerting.py         re-score, diff against the last run, report
   scoring/
     engine.py         the deterministic risk engine. No LLM reaches it.
+                      Scores, the structural/transient split, and the
+                      cross-hazard investment portfolio.
     climatology.py    day counting over the frozen weather record
     weights.yaml      weights and thresholds, as data
   tools/
     nws.py            live NWS alerts, one call for the whole country
 
 data/                 hub registry + three frozen snapshots (committed)
-scripts/              one-off fetchers that built those snapshots, and a verifier
-evals/                10 cases, deterministic checks, harness, report
-tests/                54 unit tests
+scripts/              one-off fetchers that built those snapshots, a verifier,
+                      and the risk-change check
+evals/                15 cases, deterministic checks, harness, report
+tests/                178 unit tests, incl. a 120-score golden baseline
+docs/                 architecture.md (the design document), DEPLOYMENT.md
 docker/               one Dockerfile per service
 ui/streamlit_app.py   the chat UI. A client of /chat; imports nothing of ours.
 ```
@@ -210,7 +305,7 @@ between user questions.
 ```bash
 python -m scripts.fetch_nri        # FEMA National Risk Index, 1 request
 python -m scripts.fetch_zones      # NWS county + forecast zone per hub
-python -m scripts.fetch_history    # Open-Meteo 2021-2025, ~9 min (rate limited)
+python -m scripts.fetch_history    # Open-Meteo 2021-2026, ~9 min (rate limited)
 python -m scripts.verify_snapshots # coverage matrix + grid-cell offsets
 ```
 
@@ -220,7 +315,8 @@ python -m scripts.verify_snapshots # coverage matrix + grid-cell offsets
 
 - **FEMA National Risk Index** v1.20.0 (December 2025) — county hazard baselines.
 - **NOAA / National Weather Service** — live active alerts.
-- **[Weather data by Open-Meteo.com](https://open-meteo.com/)** — historical
-  reanalysis, CC BY 4.0. The free API tier is **non-commercial use only**;
+- **[Weather data by Open-Meteo.com](https://open-meteo.com/)** — daily ECMWF
+  IFS reanalysis, 2021-01-01 to 2026-09-20 (five complete years plus 2026 to
+  date), CC BY 4.0. The free API tier is **non-commercial use only**;
   production use requires a paid subscription. See the tradeoffs section of the
   design document.

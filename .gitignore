@@ -13,3 +13,18 @@ docker_build.log
 docker_up.log
 data/turns.jsonl
 data/risk_state.json
+
+# Working notes and local tooling -- not part of the submission.
+# tests.md is a demo/QA script for our own use; scripts/ask_questions.py parses
+# it, so it cannot live in a repo the file has left.
+tests.md
+ENRICH_IDEA.md
+scripts/ask_questions.py
+evals/question_sweep.md
+evals/question_sweep.json
+
+# `run_evals --json` writes this; results.md is the committed record.
+evals/results.json
+
+# The raw screen capture (91 MB). The compressed copy is committed at docs/demo.mp4.
+screen_recording.mp4
