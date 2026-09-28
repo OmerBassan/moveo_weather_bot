@@ -186,3 +186,67 @@ alert_severity_scores:
   Severe: 75
   Moderate: 50
   Minor: 25
+
+# WHICH HUBS A RESILIENCE BUDGET SHOULD LOOK AT, as opposed to which hubs are
+# risky today. Those are different questions and the score above answers only
+# the second.
+#
+# The score blends structural exposure (FEMA baseline, historical frequency)
+# with live conditions (`current`, weighted 0.20-0.40). That is right for "how
+# exposed is this hub right now" and wrong for "where should next year's capital
+# go", because a storm passing through raises a hub it will leave. Eight hubs
+# make the problem concrete: FEMA models no hurricane risk for them and
+# hurricane has no historical component, so their entire hurricane score IS the
+# live wind reading -- 0.0 in calm weather, 75.0 under one Severe alert, with
+# nothing structural moving in between.
+#
+# So the tier is computed from the STRUCTURAL components alone, and the
+# transient reading only separates "worth watching" from "quiet".
+#
+# WHY THE INVEST GROUP IS RELATIVE TO THIS NETWORK AND NOT AN ABSOLUTE BAND.
+# The first attempt used the bands above: structural in High or Very High.
+# Measured across the 40 hubs, that tiered 88 of 112 hub-hazard pairs as
+# Invest -- 33 of 40 for winter, 35 of 40 for flood. A shortlist containing
+# five hubs out of six is not a shortlist.
+#
+# The cause is what the FEMA baseline measures. The NRI risk index is
+# loss-weighted and expressed as a percentile against every US county, so it
+# rises with population and built value. Every hub here is a major metro
+# county, which puts the whole network in the national top tail by
+# construction: inland flooding across these 40 hubs has a median of 98.5 and a
+# MINIMUM of 72.3. Against that distribution, "structural >= 60" resolves to
+# "is a major US metro", which all of them are.
+#
+# Tightening to Very High only was rejected as well: it gives winter 5,
+# hurricane 15 and flood 23, so a cross-hazard shortlist would fill up with
+# flood hubs because flood's NRI values are compressed at the top -- an
+# artifact of the national distribution, not a finding about risk.
+#
+# Ranking within the network fixes both. It discriminates evenly by
+# construction (13 / 10 / 13), which is precisely what makes a cross-hazard
+# tier legitimate rather than a comparison of differently-shaped
+# distributions. And it states the claim the decision actually needs: this
+# analyst is choosing among THESE hubs, so "in the top third of the network for
+# this hazard" is both weaker and truer than "above 60 nationally".
+#
+# The cost is stated rather than hidden: the tier is a RELATIVE standing, so
+# adding or removing hubs can move it, and a hub tiered Invest is not thereby
+# claimed to be at risk in absolute terms. Every response carries that.
+#
+# The cutoff is computed over the whole network from the frozen snapshots, not
+# over whichever hubs a question mentioned -- structural scores use no live
+# data, so the boundary is a property of the record. Asking about two hubs and
+# asking about forty must not give a hub two different tiers.
+investability:
+  # Invest = the top 1-in-N of the network for this hazard, by structural score.
+  # Hubs tied at the boundary are all included rather than cut alphabetically,
+  # the same reasoning that makes `tied_with_next` explicit in a ranking.
+  invest_top_one_in: 3
+  # A hub OUTSIDE the Invest group whose live conditions fall in one of these
+  # bands is "Watch": something is happening at a hub the structural record
+  # would not otherwise put on the list. Band labels, so no new number here.
+  watch_transient_bands: ["High", "Very High"]
+  labels:
+    invest: "Invest"
+    watch: "Watch"
+    low: "Low"

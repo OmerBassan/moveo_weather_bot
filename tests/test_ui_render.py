@@ -29,7 +29,7 @@ import pytest
 from streamlit.testing.v1 import AppTest
 
 from app.hubs import load_hubs
-from app.scoring.engine import Hazard, rank_hubs
+from app.scoring.engine import Hazard, rank_hubs, rank_portfolio
 
 APP = str(pathlib.Path(__file__).resolve().parents[1] / "ui" / "streamlit_app.py")
 
@@ -68,6 +68,17 @@ METHODOLOGY = {
 }
 
 
+# The roster the sidebar groups by region, in the shape `/hubs` returns.
+HUBS = {
+    "count": len(load_hubs().hubs),
+    "hubs": [
+        {"hub_id": h.id, "name": h.label, "region": h.region,
+         "county": h.county_name, "latitude": h.latitude, "longitude": h.longitude}
+        for h in load_hubs().hubs
+    ],
+}
+
+
 @pytest.fixture(scope="module")
 def nri() -> dict[str, Any]:
     root = pathlib.Path(__file__).resolve().parents[1]
@@ -99,7 +110,47 @@ def _assessments(hub_ids: tuple[str, ...], hazard: Hazard, nri: dict[str, Any]) 
             "component_breakdown": list(result.breakdown()) if detailed else [],
             "evidence": list(result.evidence) if detailed else [],
             "active_alerts": [],
+            # A risk row carries the structural score but NO tier: a ranking
+            # must not be readable as an investment shortlist. Mirrors
+            # `assemble` exactly, which is the only thing that makes this
+            # fixture worth having.
+            "structural_score": result.structural_score,
+            "investability": None,
         })
+    return rows
+
+
+def _portfolio_assessments(nri: dict[str, Any]) -> list[dict]:
+    """The shape `assemble` produces for intent='portfolio', from real engine
+    output: tiers and structural scores, and no cross-hazard gaps."""
+    registry = load_hubs()
+    rows = []
+    for position, entry in enumerate(rank_portfolio(registry.hubs, nri), start=1):
+        lead = entry.lead
+        detailed = position <= 3
+        rows.append({
+            "hub_id": entry.hub_id, "hub": entry.hub_label,
+            "region": entry.region, "hazard": entry.lead_hazard,
+            "risk_score": entry.score, "risk_band": entry.band,
+            "rank": position,
+            # Absent by design -- the rows span hazards.
+            "gap_to_leader": None, "gap_to_next": None,
+            "main_drivers": [lead.top_driver.name] if lead.top_driver else [],
+            "component_breakdown": list(lead.breakdown()) if detailed else [],
+            "evidence": list(lead.evidence) if detailed else [],
+            "active_alerts": [],
+            "structural_score": entry.structural_score,
+            "investability": entry.investability,
+        })
+
+    # THE CONTRACT ALLOWS A NULL STRUCTURAL SCORE AND THIS PATH CANNOT PRODUCE
+    # ONE: a hub's lead hazard is always one it is tierable on, because inland
+    # flooding is modelled for every hub. But `structural_score` is Optional on
+    # HubAssessment, a per-hazard view could carry None, and a bare f"{v:.1f}"
+    # raises on it -- so the last row is forced to None to keep the formatter's
+    # isna guard under test rather than merely present.
+    if rows:
+        rows[-1] = {**rows[-1], "structural_score": None, "investability": None}
     return rows
 
 
@@ -123,6 +174,18 @@ def _payloads(nri: dict[str, Any]) -> dict[str, dict[str, Any]]:
             "interpretation": ["Lake-effect geography likely drives the top cluster."],
             "assumptions": ["20 qualifying snow days/year anchors a score of 100."],
             "uncertainty": ["Gridded reanalysis smooths localised snowfall bands."],
+            "sources": ["FEMA National Risk Index v1.20.0", "NWS active alerts"],
+        },
+        # The investment view: Tier and Structural columns, no gap column, and
+        # rows whose structural score is None.
+        "portfolio": {
+            **base, "intent": "portfolio",
+            "answer": "Ranked for resilience investment across all three hazards.",
+            "interpretation_of_question": "Which hubs to invest in.",
+            "assessments": _portfolio_assessments(nri),
+            "assumptions": [
+                "Hubs are grouped by STRUCTURAL exposure, not by today's risk score."
+            ],
             "sources": ["FEMA National Risk Index v1.20.0", "NWS active alerts"],
         },
         "rank_one_region": {
@@ -190,14 +253,18 @@ class _Response:
 
 @pytest.mark.parametrize(
     "shape",
-    ["rank_all_hubs", "rank_one_region", "compare_two_hazards", "clarify",
-     "out_of_scope", "transport_error", "many_footnotes"],
+    ["rank_all_hubs", "rank_one_region", "portfolio", "compare_two_hazards",
+     "clarify", "out_of_scope", "transport_error", "many_footnotes"],
 )
 def test_ui_renders_without_raising(shape: str, nri: dict[str, Any]) -> None:
     payload = _payloads(nri)[shape]
 
     def fake_get(url: str, **_: Any) -> _Response:
-        return _Response(METHODOLOGY if "/methodology" in url else HEALTH)
+        if "/methodology" in url:
+            return _Response(METHODOLOGY)
+        if "/hubs" in url:
+            return _Response(HUBS)
+        return _Response(HEALTH)
 
     app = AppTest.from_file(APP, default_timeout=120)
     with (
@@ -213,3 +280,63 @@ def test_ui_renders_without_raising(shape: str, nri: dict[str, Any]) -> None:
         assert app.chat_input, "the app exposes no chat input"
         app.chat_input[0].set_value("a question").run()
         assert not app.exception, [str(e.value) for e in app.exception]
+
+
+def test_the_portfolio_table_shows_the_columns_the_ordering_uses(
+    nri: dict[str, Any],
+) -> None:
+    """"Did it raise" would pass on a table that silently dropped Tier, and the
+    whole point of the investment view is that the reader can see the column the
+    order was built from. Also the crash guard: eight hubs carry a null
+    structural score, and formatting one with a bare f"{v:.1f}" raises."""
+    payload = _payloads(nri)["portfolio"]
+    assert any(r["structural_score"] is None for r in payload["assessments"]), (
+        "fixture no longer covers the null-structural-score case"
+    )
+
+    def fake_get(url: str, **_: Any) -> _Response:
+        if "/methodology" in url:
+            return _Response(METHODOLOGY)
+        if "/hubs" in url:
+            return _Response(HUBS)
+        return _Response(HEALTH)
+
+    app = AppTest.from_file(APP, default_timeout=120)
+    with (
+        patch("httpx.get", fake_get),
+        patch("httpx.post", lambda url, **kw: _Response(payload)),
+        patch("httpx.delete", fake_get),
+    ):
+        app.run()
+        app.chat_input[0].set_value("which hubs should we invest in").run()
+        assert not app.exception, [str(e.value) for e in app.exception]
+
+        frames = [df.value for df in app.dataframe]
+        assert frames, "the portfolio rendered no table"
+        columns = list(frames[0].columns)
+        assert "Tier" in columns and "Structural" in columns
+        # The gap column is meaningless across hazards and must not appear.
+        assert "Gap to #1" not in columns
+
+
+def test_hub_roster_lists_every_hub_grouped_by_region() -> None:
+    """The roster is the one place a reader can check what the portfolio is, so
+    a silently-empty popover (a shape change in `/hubs`, say) must fail here."""
+    def fake_get(url: str, **_: Any) -> _Response:
+        if "/methodology" in url:
+            return _Response(METHODOLOGY)
+        if "/hubs" in url:
+            return _Response(HUBS)
+        return _Response(HEALTH)
+
+    app = AppTest.from_file(APP, default_timeout=120)
+    with patch("httpx.get", fake_get):
+        app.run()
+    assert not app.exception, [str(e.value) for e in app.exception]
+
+    rendered = "".join(element.value for element in app.markdown)
+    registry = load_hubs()
+    for hub in registry.hubs:
+        assert hub.label in rendered, f"{hub.label} is missing from the roster"
+    for region in {h.region for h in registry.hubs}:
+        assert region in rendered, f"region heading {region} is missing"

@@ -19,9 +19,12 @@ and two conversational follow-ups.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Literal
 
-Intent = Literal["rank", "compare", "explain", "measure", "clarify", "out_of_scope"]
+# IMPORTED, NOT RESTATED. This module kept its own narrower Literal, which had
+# already drifted -- it was missing "methodology" -- so a case could not express
+# an intent the application supports, and adding a new one meant editing two
+# places with nothing to catch the omission.
+from app.agent.contract import Intent
 
 
 @dataclass(frozen=True)
@@ -44,6 +47,13 @@ class Case:
     expect_measurement: tuple[str, str, str] | None = None
     # Absolute tolerance in percentage points for the measured figure.
     tolerance_pp: float = 0.2
+    # (hub_id, metric) for a year-by-year question. Like `expect_measurement`,
+    # the figures are recomputed from the snapshot at run time and never written
+    # here -- but unlike it, there is no single expected number: the answer may
+    # legitimately quote the worst year, the mean, the slope or a per-year count.
+    # So this contributes to the ALLOWED set for groundedness rather than to an
+    # accuracy assertion.
+    expect_year_series: tuple[str, str] | None = None
 
     # ---- what the answer must contain ---------------------------------
     # Lowercase substrings, any of which satisfies the requirement.
@@ -205,6 +215,83 @@ CASES: tuple[Case, ...] = (
         notes=(
             "Two hubs are called Portland (ME and OR) and no hazard was "
             "named. Two independent reasons to ask rather than guess."
+        ),
+    ),
+    Case(
+        case_id="portfolio_investment_shortlist",
+        category="investment",
+        question=(
+            "Which hubs should we prioritise for resilience investment this year?"
+        ),
+        expect_intent=("portfolio",),
+        # No hazard: the whole point is that a budget question names none. The
+        # engine assembles all forty hubs, so these assert the assembly ran
+        # rather than that the model chose to mention them.
+        expect_hubs=("boston-ma", "houston-tx", "miami-fl", "new-york-ny"),
+        expect_any_phrase=("invest",),
+        notes=(
+            "The assignment's headline question. It must route to the "
+            "cross-hazard portfolio rather than to three per-hazard rankings "
+            "merged by the model, and the ordering is verified independently "
+            "against engine.rank_portfolio."
+        ),
+    ),
+    Case(
+        case_id="portfolio_tier_is_not_todays_score",
+        category="investment",
+        question=(
+            "In that list, is the hub at the top the one with the highest risk "
+            "score right now?"
+        ),
+        follows=("portfolio_investment_shortlist",),
+        expect_intent=("portfolio", "explain", "methodology"),
+        # Any correct answer contrasts the ordering basis with the live reading,
+        # so one of these appears. Deliberately NOT requiring "structural" in
+        # `answer`: rule 2 sends the explanation to `interpretation`, so the
+        # word legitimately lands there instead. Observed: Sonnet answered "its
+        # live risk_score is 56.3 ... rank 2, not rank 1", which is right.
+        expect_any_phrase=(
+            "structural", "persistent", "live", "current", "right now",
+        ),
+        notes=(
+            "The divergence has to be explainable, not smoothed over. The "
+            "ordering comes from structural exposure, so the top hub routinely "
+            "is NOT the highest current score -- and an answer that claims it "
+            "is has misread its own evidence."
+        ),
+    ),
+    Case(
+        case_id="measure_worst_snow_year",
+        category="measurement",
+        question=(
+            "What was Minneapolis's worst year for snow disruption, and how "
+            "unusual was that compared with a normal year?"
+        ),
+        expect_intent=("measure",),
+        expect_year_series=("minneapolis-mn", "disruptive_snowfall"),
+        # 2023 is the worst COMPLETE year in the committed snapshot; the partial
+        # final year must not win it on a raw count.
+        expect_any_phrase=("2023",),
+        notes=(
+            "Needs year_by_year: the score's historical component is a "
+            "multi-year mean and cannot answer it. Also checks that the partial "
+            "year at the end of the record is excluded and disclosed."
+        ),
+    ),
+    Case(
+        case_id="out_of_scope_hurricane_where_fema_models_none",
+        category="scope",
+        question="Should we invest in hurricane resilience at Boise?",
+        expect_intent=("explain", "portfolio", "out_of_scope"),
+        expect_any_phrase=(
+            "does not model", "no structural", "not measured", "cannot",
+        ),
+        notes=(
+            "FEMA models no hurricane risk for Boise's county and hurricane has "
+            "no historical component, so nothing structural exists to invest "
+            "against and the hub is not tierable. The honest answer names that "
+            "limit; the failure mode is quoting the live wind reading as though "
+            "it were an exposure."
         ),
     ),
 )

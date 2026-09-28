@@ -1,0 +1,2682 @@
+{
+  "allentown-pa:flood": {
+    "band": "High",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 95.3562,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 64.0657,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Low",
+    "score": 62.1,
+    "structural_score": 82.8,
+    "transient_score": 0.0
+  },
+  "allentown-pa:hurricane": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 90.1961,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": "Low",
+    "score": 54.1,
+    "structural_score": 90.2,
+    "transient_score": 0.0
+  },
+  "allentown-pa:winter": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 98.8868,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 33.1977,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Invest",
+    "score": 59.4,
+    "structural_score": 74.3,
+    "transient_score": 0.0
+  },
+  "atlanta-ga:flood": {
+    "band": "High",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 97.6781,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 100.0,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Invest",
+    "score": 74.0,
+    "structural_score": 98.6,
+    "transient_score": 0.0
+  },
+  "atlanta-ga:hurricane": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 74.927,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": "Low",
+    "score": 45.0,
+    "structural_score": 74.9,
+    "transient_score": 0.0
+  },
+  "atlanta-ga:winter": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 89.8219,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 1.7472,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Low",
+    "score": 45.4,
+    "structural_score": 56.8,
+    "transient_score": 0.0
+  },
+  "boise-id:flood": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 89.8219,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 1.456,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Low",
+    "score": 40.9,
+    "structural_score": 54.5,
+    "transient_score": 0.0
+  },
+  "boise-id:hurricane": {
+    "band": "Very Low",
+    "components": [
+      {
+        "name": "baseline",
+        "value": null,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": null,
+    "score": 0.0,
+    "structural_score": null,
+    "transient_score": 0.0
+  },
+  "boise-id:winter": {
+    "band": "High",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 98.9497,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 45.4284,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Invest",
+    "score": 63.1,
+    "structural_score": 78.9,
+    "transient_score": 0.0
+  },
+  "boston-ma:flood": {
+    "band": "High",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 93.4601,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 84.4503,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Invest",
+    "score": 67.4,
+    "structural_score": 89.9,
+    "transient_score": 0.0
+  },
+  "boston-ma:hurricane": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 93.6587,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": "Invest",
+    "score": 56.2,
+    "structural_score": 93.7,
+    "transient_score": 0.0
+  },
+  "boston-ma:winter": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 94.1794,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 40.1867,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Invest",
+    "score": 59.1,
+    "structural_score": 73.9,
+    "transient_score": 0.0
+  },
+  "buffalo-ny:flood": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 71.707,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 40.7691,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Low",
+    "score": 44.5,
+    "structural_score": 59.3,
+    "transient_score": 0.0
+  },
+  "buffalo-ny:hurricane": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 71.2975,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": "Low",
+    "score": 42.8,
+    "structural_score": 71.3,
+    "transient_score": 0.0
+  },
+  "buffalo-ny:winter": {
+    "band": "High",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 99.5547,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 55.9119,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Invest",
+    "score": 66.6,
+    "structural_score": 83.2,
+    "transient_score": 0.0
+  },
+  "charlotte-nc:flood": {
+    "band": "High",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 98.9504,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 71.3459,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Invest",
+    "score": 65.9,
+    "structural_score": 87.9,
+    "transient_score": 0.0
+  },
+  "charlotte-nc:hurricane": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 84.1886,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": "Low",
+    "score": 50.5,
+    "structural_score": 84.2,
+    "transient_score": 0.0
+  },
+  "charlotte-nc:winter": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 85.3596,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 1.7472,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Low",
+    "score": 43.2,
+    "structural_score": 54.0,
+    "transient_score": 0.0
+  },
+  "chicago-il:flood": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 71.9682,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 53.8735,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Low",
+    "score": 48.5,
+    "structural_score": 64.7,
+    "transient_score": 0.0
+  },
+  "chicago-il:hurricane": {
+    "band": "Low",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 48.8945,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": "Low",
+    "score": 29.3,
+    "structural_score": 48.9,
+    "transient_score": 0.0
+  },
+  "chicago-il:winter": {
+    "band": "High",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 100.0,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 34.0713,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Invest",
+    "score": 60.2,
+    "structural_score": 75.3,
+    "transient_score": 0.0
+  },
+  "columbus-oh:flood": {
+    "band": "High",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 98.7913,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 64.0657,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Low",
+    "score": 63.7,
+    "structural_score": 84.9,
+    "transient_score": 0.0
+  },
+  "columbus-oh:hurricane": {
+    "band": "Low",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 49.6871,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": "Low",
+    "score": 29.8,
+    "structural_score": 49.7,
+    "transient_score": 0.0
+  },
+  "columbus-oh:winter": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 99.2048,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 20.967,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Low",
+    "score": 55.9,
+    "structural_score": 69.9,
+    "transient_score": 0.0
+  },
+  "dallas-tx:flood": {
+    "band": "High",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 99.5547,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 100.0,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Invest",
+    "score": 74.8,
+    "structural_score": 99.7,
+    "transient_score": 0.0
+  },
+  "dallas-tx:hurricane": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 73.5503,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": "Low",
+    "score": 44.1,
+    "structural_score": 73.6,
+    "transient_score": 0.0
+  },
+  "dallas-tx:winter": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 99.8728,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 4.3681,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Low",
+    "score": 51.2,
+    "structural_score": 64.1,
+    "transient_score": 0.0
+  },
+  "denver-co:flood": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 95.2608,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 8.7362,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Low",
+    "score": 45.5,
+    "structural_score": 60.7,
+    "transient_score": 0.0
+  },
+  "denver-co:hurricane": {
+    "band": "Very Low",
+    "components": [
+      {
+        "name": "baseline",
+        "value": null,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": null,
+    "score": 0.0,
+    "structural_score": null,
+    "transient_score": 0.0
+  },
+  "denver-co:winter": {
+    "band": "High",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 92.1438,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 57.6592,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Invest",
+    "score": 63.4,
+    "structural_score": 79.2,
+    "transient_score": 0.0
+  },
+  "des-moines-ia:flood": {
+    "band": "High",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 92.1438,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 65.5218,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Low",
+    "score": 61.1,
+    "structural_score": 81.5,
+    "transient_score": 0.0
+  },
+  "des-moines-ia:hurricane": {
+    "band": "Very Low",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 27.4927,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": "Low",
+    "score": 16.5,
+    "structural_score": 27.5,
+    "transient_score": 0.0
+  },
+  "des-moines-ia:winter": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 91.285,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 27.956,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Low",
+    "score": 54.0,
+    "structural_score": 67.5,
+    "transient_score": 0.0
+  },
+  "detroit-mi:flood": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 74.4978,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 40.7691,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Low",
+    "score": 45.8,
+    "structural_score": 61.0,
+    "transient_score": 0.0
+  },
+  "detroit-mi:hurricane": {
+    "band": "Low",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 57.7806,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": "Low",
+    "score": 34.7,
+    "structural_score": 57.8,
+    "transient_score": 0.0
+  },
+  "detroit-mi:winter": {
+    "band": "High",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 99.7455,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 36.6922,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Invest",
+    "score": 60.9,
+    "structural_score": 76.1,
+    "transient_score": 0.0
+  },
+  "hartford-ct:flood": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 68.7229,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 82.9943,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Low",
+    "score": 55.8,
+    "structural_score": 74.4,
+    "transient_score": 0.0
+  },
+  "hartford-ct:hurricane": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 93.1581,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": "Invest",
+    "score": 55.9,
+    "structural_score": 93.2,
+    "transient_score": 0.0
+  },
+  "hartford-ct:winter": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 94.8155,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 38.4394,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Invest",
+    "score": 58.9,
+    "structural_score": 73.7,
+    "transient_score": 0.0
+  },
+  "houston-tx:flood": {
+    "band": "High",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 91.5841,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 100.0,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Invest",
+    "score": 71.2,
+    "structural_score": 95.0,
+    "transient_score": 0.0
+  },
+  "houston-tx:hurricane": {
+    "band": "High",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 100.0,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": "Invest",
+    "score": 60.0,
+    "structural_score": 100.0,
+    "transient_score": 0.0
+  },
+  "houston-tx:winter": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 99.9046,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 1.7472,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Low",
+    "score": 50.5,
+    "structural_score": 63.1,
+    "transient_score": 0.0
+  },
+  "indianapolis-in:flood": {
+    "band": "High",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 98.2824,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 56.7855,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Low",
+    "score": 61.3,
+    "structural_score": 81.7,
+    "transient_score": 0.0
+  },
+  "indianapolis-in:hurricane": {
+    "band": "Low",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 34.0843,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": "Low",
+    "score": 20.5,
+    "structural_score": 34.1,
+    "transient_score": 0.0
+  },
+  "indianapolis-in:winter": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 98.6959,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 19.2197,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Low",
+    "score": 55.1,
+    "structural_score": 68.9,
+    "transient_score": 0.0
+  },
+  "jacksonville-fl:flood": {
+    "band": "High",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 94.2754,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 62.6097,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Low",
+    "score": 61.2,
+    "structural_score": 81.6,
+    "transient_score": 0.0
+  },
+  "jacksonville-fl:hurricane": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 97.6637,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": "Invest",
+    "score": 58.6,
+    "structural_score": 97.7,
+    "transient_score": 0.0
+  },
+  "jacksonville-fl:winter": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 98.5369,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 0.0,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Low",
+    "score": 49.3,
+    "structural_score": 61.6,
+    "transient_score": 0.0
+  },
+  "kansas-city-mo:flood": {
+    "band": "High",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 96.5013,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 82.9943,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Invest",
+    "score": 68.3,
+    "structural_score": 91.1,
+    "transient_score": 0.0
+  },
+  "kansas-city-mo:hurricane": {
+    "band": "Very Low",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 0.0,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": "Low",
+    "score": 0.0,
+    "structural_score": 0.0,
+    "transient_score": 0.0
+  },
+  "kansas-city-mo:winter": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 95.9606,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 21.8406,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Low",
+    "score": 54.5,
+    "structural_score": 68.2,
+    "transient_score": 0.0
+  },
+  "las-vegas-nv:flood": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 99.6183,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 4.3681,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Low",
+    "score": 46.1,
+    "structural_score": 61.5,
+    "transient_score": 0.0
+  },
+  "las-vegas-nv:hurricane": {
+    "band": "Very Low",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 0.0,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": "Low",
+    "score": 0.0,
+    "structural_score": 0.0,
+    "transient_score": 0.0
+  },
+  "las-vegas-nv:winter": {
+    "band": "Low",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 61.585,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 0.0,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Low",
+    "score": 30.8,
+    "structural_score": 38.5,
+    "transient_score": 0.0
+  },
+  "los-angeles-ca:flood": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 95.0,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 53.8735,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Low",
+    "score": 58.9,
+    "structural_score": 78.5,
+    "transient_score": 0.0
+  },
+  "los-angeles-ca:hurricane": {
+    "band": "Very Low",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 0.0,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": "Low",
+    "score": 0.0,
+    "structural_score": 0.0,
+    "transient_score": 0.0
+  },
+  "los-angeles-ca:winter": {
+    "band": "Low",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 74.7613,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 0.0,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Low",
+    "score": 37.4,
+    "structural_score": 46.7,
+    "transient_score": 0.0
+  },
+  "memphis-tn:flood": {
+    "band": "High",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 98.6641,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 96.0986,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Invest",
+    "score": 73.2,
+    "structural_score": 97.6,
+    "transient_score": 0.0
+  },
+  "memphis-tn:hurricane": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 67.1256,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": "Low",
+    "score": 40.3,
+    "structural_score": 67.1,
+    "transient_score": 0.0
+  },
+  "memphis-tn:winter": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 99.7774,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 8.7362,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Low",
+    "score": 52.5,
+    "structural_score": 65.6,
+    "transient_score": 0.0
+  },
+  "miami-fl:flood": {
+    "band": "High",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 99.6569,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 72.802,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Invest",
+    "score": 66.7,
+    "structural_score": 88.9,
+    "transient_score": 0.0
+  },
+  "miami-fl:hurricane": {
+    "band": "High",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 99.9583,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": "Invest",
+    "score": 60.0,
+    "structural_score": 100.0,
+    "transient_score": 0.0
+  },
+  "miami-fl:winter": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 99.5229,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 0.0,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Low",
+    "score": 49.8,
+    "structural_score": 62.2,
+    "transient_score": 0.0
+  },
+  "milwaukee-wi:flood": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 66.321,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 36.401,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Low",
+    "score": 40.8,
+    "structural_score": 54.4,
+    "transient_score": 0.0
+  },
+  "milwaukee-wi:hurricane": {
+    "band": "Very Low",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 18.7735,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": "Low",
+    "score": 11.3,
+    "structural_score": 18.8,
+    "transient_score": 0.0
+  },
+  "milwaukee-wi:winter": {
+    "band": "High",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 99.9682,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 50.6702,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Invest",
+    "score": 65.2,
+    "structural_score": 81.5,
+    "transient_score": 0.0
+  },
+  "minneapolis-mn:flood": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 98.028,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 48.0493,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Low",
+    "score": 58.5,
+    "structural_score": 78.0,
+    "transient_score": 0.0
+  },
+  "minneapolis-mn:hurricane": {
+    "band": "Very Low",
+    "components": [
+      {
+        "name": "baseline",
+        "value": null,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": null,
+    "score": 0.0,
+    "structural_score": null,
+    "transient_score": 0.0
+  },
+  "minneapolis-mn:winter": {
+    "band": "High",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 99.841,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 47.1757,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Invest",
+    "score": 64.1,
+    "structural_score": 80.1,
+    "transient_score": 0.0
+  },
+  "new-orleans-la:flood": {
+    "band": "High",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 87.3557,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 100.0,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Invest",
+    "score": 69.3,
+    "structural_score": 92.4,
+    "transient_score": 0.0
+  },
+  "new-orleans-la:hurricane": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 99.6662,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": "Invest",
+    "score": 59.8,
+    "structural_score": 99.7,
+    "transient_score": 0.0
+  },
+  "new-orleans-la:winter": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 97.6781,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 0.8736,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Low",
+    "score": 49.1,
+    "structural_score": 61.4,
+    "transient_score": 0.0
+  },
+  "new-york-ny:flood": {
+    "band": "High",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 97.966,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 100.0,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Invest",
+    "score": 74.1,
+    "structural_score": 98.8,
+    "transient_score": 0.0
+  },
+  "new-york-ny:hurricane": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 97.0797,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": "Invest",
+    "score": 58.2,
+    "structural_score": 97.1,
+    "transient_score": 0.0
+  },
+  "new-york-ny:winter": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 99.7454,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 24.4615,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Low",
+    "score": 57.2,
+    "structural_score": 71.5,
+    "transient_score": 0.0
+  },
+  "newark-nj:flood": {
+    "band": "High",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 82.1116,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 99.0107,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Invest",
+    "score": 66.7,
+    "structural_score": 88.9,
+    "transient_score": 0.0
+  },
+  "newark-nj:hurricane": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 91.8231,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": "Invest",
+    "score": 55.1,
+    "structural_score": 91.8,
+    "transient_score": 0.0
+  },
+  "newark-nj:winter": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 97.0083,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 30.5768,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Low",
+    "score": 57.7,
+    "structural_score": 72.1,
+    "transient_score": 0.0
+  },
+  "omaha-ne:flood": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 95.07,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 49.5053,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Low",
+    "score": 57.6,
+    "structural_score": 76.8,
+    "transient_score": 0.0
+  },
+  "omaha-ne:hurricane": {
+    "band": "Very Low",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 0.0,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": "Low",
+    "score": 0.0,
+    "structural_score": 0.0,
+    "transient_score": 0.0
+  },
+  "omaha-ne:winter": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 98.2813,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 21.8406,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Low",
+    "score": 55.7,
+    "structural_score": 69.6,
+    "transient_score": 0.0
+  },
+  "philadelphia-pa:flood": {
+    "band": "High",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 92.4933,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 69.8899,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Low",
+    "score": 62.6,
+    "structural_score": 83.5,
+    "transient_score": 0.0
+  },
+  "philadelphia-pa:hurricane": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 94.2845,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": "Invest",
+    "score": 56.6,
+    "structural_score": 94.3,
+    "transient_score": 0.0
+  },
+  "philadelphia-pa:winter": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 99.8092,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 23.5878,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Low",
+    "score": 57.0,
+    "structural_score": 71.2,
+    "transient_score": 0.0
+  },
+  "phoenix-az:flood": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 99.8728,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 20.3846,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Low",
+    "score": 51.1,
+    "structural_score": 68.1,
+    "transient_score": 0.0
+  },
+  "phoenix-az:hurricane": {
+    "band": "Very Low",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 26.5749,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": "Low",
+    "score": 15.9,
+    "structural_score": 26.6,
+    "transient_score": 0.0
+  },
+  "phoenix-az:winter": {
+    "band": "Very Low",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 38.7333,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 0.0,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Low",
+    "score": 19.4,
+    "structural_score": 24.2,
+    "transient_score": 0.0
+  },
+  "pittsburgh-pa:flood": {
+    "band": "High",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 99.2048,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 62.6097,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Low",
+    "score": 63.4,
+    "structural_score": 84.6,
+    "transient_score": 0.0
+  },
+  "pittsburgh-pa:hurricane": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 75.8865,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": "Low",
+    "score": 45.5,
+    "structural_score": 75.9,
+    "transient_score": 0.0
+  },
+  "pittsburgh-pa:winter": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 98.7913,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 25.3351,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Low",
+    "score": 57.0,
+    "structural_score": 71.2,
+    "transient_score": 0.0
+  },
+  "portland-me:flood": {
+    "band": "High",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 75.3482,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 96.0986,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Low",
+    "score": 62.7,
+    "structural_score": 83.6,
+    "transient_score": 0.0
+  },
+  "portland-me:hurricane": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 90.6967,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": "Low",
+    "score": 54.4,
+    "structural_score": 90.7,
+    "transient_score": 0.0
+  },
+  "portland-me:winter": {
+    "band": "High",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 98.9815,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 62.0273,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Invest",
+    "score": 68.1,
+    "structural_score": 85.1,
+    "transient_score": 0.0
+  },
+  "portland-or:flood": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 69.4735,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 71.3459,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Low",
+    "score": 52.7,
+    "structural_score": 70.2,
+    "transient_score": 0.0
+  },
+  "portland-or:hurricane": {
+    "band": "Very Low",
+    "components": [
+      {
+        "name": "baseline",
+        "value": null,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": null,
+    "score": 0.0,
+    "structural_score": null,
+    "transient_score": 0.0
+  },
+  "portland-or:winter": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 90.9669,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 27.0823,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Low",
+    "score": 53.6,
+    "structural_score": 67.0,
+    "transient_score": 0.0
+  },
+  "providence-ri:flood": {
+    "band": "High",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 76.4983,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 91.7305,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Low",
+    "score": 61.9,
+    "structural_score": 82.6,
+    "transient_score": 0.0
+  },
+  "providence-ri:hurricane": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 91.698,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": "Low",
+    "score": 55.0,
+    "structural_score": 91.7,
+    "transient_score": 0.0
+  },
+  "providence-ri:winter": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 90.617,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 33.1977,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Low",
+    "score": 55.3,
+    "structural_score": 69.1,
+    "transient_score": 0.0
+  },
+  "reno-nv:flood": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 94.5293,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 21.8406,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Low",
+    "score": 49.1,
+    "structural_score": 65.5,
+    "transient_score": 0.0
+  },
+  "reno-nv:hurricane": {
+    "band": "Very Low",
+    "components": [
+      {
+        "name": "baseline",
+        "value": null,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": null,
+    "score": 0.0,
+    "structural_score": null,
+    "transient_score": 0.0
+  },
+  "reno-nv:winter": {
+    "band": "High",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 99.0134,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 48.0493,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Invest",
+    "score": 63.9,
+    "structural_score": 79.9,
+    "transient_score": 0.0
+  },
+  "sacramento-ca:flood": {
+    "band": "Low",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 49.4911,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 48.0493,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Low",
+    "score": 36.7,
+    "structural_score": 48.9,
+    "transient_score": 0.0
+  },
+  "sacramento-ca:hurricane": {
+    "band": "Very Low",
+    "components": [
+      {
+        "name": "baseline",
+        "value": null,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": null,
+    "score": 0.0,
+    "structural_score": null,
+    "transient_score": 0.0
+  },
+  "sacramento-ca:winter": {
+    "band": "Very Low",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 6.5563,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 0.0,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Low",
+    "score": 3.3,
+    "structural_score": 4.1,
+    "transient_score": 0.0
+  },
+  "salt-lake-city-ut:flood": {
+    "band": "Low",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 46.4695,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 11.6483,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Low",
+    "score": 24.4,
+    "structural_score": 32.5,
+    "transient_score": 0.0
+  },
+  "salt-lake-city-ut:hurricane": {
+    "band": "Very Low",
+    "components": [
+      {
+        "name": "baseline",
+        "value": null,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": null,
+    "score": 0.0,
+    "structural_score": null,
+    "transient_score": 0.0
+  },
+  "salt-lake-city-ut:winter": {
+    "band": "High",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 98.7269,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 96.0986,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Invest",
+    "score": 78.2,
+    "structural_score": 97.7,
+    "transient_score": 0.0
+  },
+  "san-antonio-tx:flood": {
+    "band": "High",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 99.6501,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 84.4503,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Invest",
+    "score": 70.2,
+    "structural_score": 93.6,
+    "transient_score": 0.0
+  },
+  "san-antonio-tx:hurricane": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 83.5211,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": "Low",
+    "score": 50.1,
+    "structural_score": 83.5,
+    "transient_score": 0.0
+  },
+  "san-antonio-tx:winter": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 94.7519,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 1.7472,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Low",
+    "score": 47.9,
+    "structural_score": 59.9,
+    "transient_score": 0.0
+  },
+  "seattle-wa:flood": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 85.2296,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 40.7691,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Low",
+    "score": 50.6,
+    "structural_score": 67.4,
+    "transient_score": 0.0
+  },
+  "seattle-wa:hurricane": {
+    "band": "Very Low",
+    "components": [
+      {
+        "name": "baseline",
+        "value": null,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": null,
+    "score": 0.0,
+    "structural_score": null,
+    "transient_score": 0.0
+  },
+  "seattle-wa:winter": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 94.7167,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 17.4725,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Low",
+    "score": 52.6,
+    "structural_score": 65.8,
+    "transient_score": 0.0
+  },
+  "st-louis-mo:flood": {
+    "band": "High",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 96.9784,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 84.4503,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Invest",
+    "score": 69.0,
+    "structural_score": 92.0,
+    "transient_score": 0.0
+  },
+  "st-louis-mo:hurricane": {
+    "band": "Very Low",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 32.0818,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": "Low",
+    "score": 19.2,
+    "structural_score": 32.1,
+    "transient_score": 0.0
+  },
+  "st-louis-mo:winter": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 87.2137,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 16.5989,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Low",
+    "score": 48.6,
+    "structural_score": 60.7,
+    "transient_score": 0.0
+  },
+  "tampa-fl:flood": {
+    "band": "High",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 95.0868,
+        "weight": 0.45
+      },
+      {
+        "name": "historical",
+        "value": 58.2416,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.25
+      }
+    ],
+    "investability": "Low",
+    "score": 60.3,
+    "structural_score": 80.3,
+    "transient_score": 0.0
+  },
+  "tampa-fl:hurricane": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 99.2908,
+        "weight": 0.6
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.4
+      }
+    ],
+    "investability": "Invest",
+    "score": 59.6,
+    "structural_score": 99.3,
+    "transient_score": 0.0
+  },
+  "tampa-fl:winter": {
+    "band": "Moderate",
+    "components": [
+      {
+        "name": "baseline",
+        "value": 99.4593,
+        "weight": 0.5
+      },
+      {
+        "name": "historical",
+        "value": 0.0,
+        "weight": 0.3
+      },
+      {
+        "name": "current",
+        "value": 0.0,
+        "weight": 0.2
+      }
+    ],
+    "investability": "Low",
+    "score": 49.7,
+    "structural_score": 62.2,
+    "transient_score": 0.0
+  }
+}

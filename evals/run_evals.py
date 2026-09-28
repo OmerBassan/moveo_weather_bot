@@ -48,7 +48,8 @@ from app.agent.runner import build_agent, build_deps, run_turn  # noqa: E402
 from app.config import load_config  # noqa: E402
 from app.hubs import load_hubs  # noqa: E402
 from app.scoring import climatology  # noqa: E402
-from app.scoring.engine import rank_hubs  # noqa: E402
+from app.scoring.engine import rank_hubs, rank_portfolio  # noqa: E402
+from app.agent import tools as tool_impl  # noqa: E402
 from app.agent.tools import MEASUREMENT_METRICS  # noqa: E402
 
 
@@ -89,25 +90,91 @@ def _independent_rankings(
     return scores, orders
 
 
+def _allowed_year_series(case: Case) -> set[float]:
+    """Every figure `year_by_year` could legitimately have returned.
+
+    THE GAP THIS CLOSES. `check_groundedness` builds its allowed set from the
+    assessments, and a `measure` answer has none -- so the first run of this
+    case failed on [1.0, 10.0, 60.0, 4.0], all of which the tool had supplied:
+    the threshold, the mean across complete years, the worst year's excess over
+    that mean, and a partial-year count. Recomputed here from the snapshot, so
+    the reference is the data rather than a number typed into the case.
+    """
+    hub_id, metric = case.expect_year_series  # type: ignore[misc]
+    spec = MEASUREMENT_METRICS[metric]
+    threshold, _ = tool_impl._resolve_threshold(spec)
+    series = climatology.count_days_by_year(
+        hub_id, spec.variable, threshold, strict=spec.strict, direction=spec.direction
+    )
+
+    allowed = {float(threshold), float(len(series.complete_years))}
+    for year in series.years:
+        allowed.add(float(year.count.days_matching))
+        allowed.add(float(year.count.days_observed))
+    if series.mean_days is not None:
+        allowed.add(round(series.mean_days, 1))
+    if series.slope_days_per_year is not None:
+        allowed.add(round(series.slope_days_per_year, 2))
+        allowed.add(abs(round(series.slope_days_per_year, 2)))
+    worst = series.worst_year
+    if worst is not None and series.mean_days:
+        allowed.add(
+            round((worst.count.days_matching / series.mean_days - 1.0) * 100.0, 1)
+        )
+    return allowed
+
+
+def _independent_portfolio(
+    response: dict[str, Any], deps: Any
+) -> tuple[dict[tuple[str, str], float], list[str]]:
+    """Re-run the portfolio from the engine, outside the agent path.
+
+    The tier boundary is a network constant rather than a property of this
+    subset, so re-ranking only the hubs the response mentions yields the same
+    relative order -- see `engine.structural_cutoff`.
+    """
+    registry = load_hubs()
+    hub_ids = [a["hub_id"] for a in response.get("assessments", [])]
+    hubs = tuple(
+        h
+        for h in (registry.by_id(i) for i in dict.fromkeys(hub_ids))
+        if h is not None
+    )
+    entries = rank_portfolio(
+        hubs, deps.nri, deps.engine_alerts(), forecasts_by_hub=deps.forecasts
+    )
+    scores = {(e.lead_hazard, e.hub_id): e.score for e in entries}
+    return scores, [e.hub_id for e in entries]
+
+
 def _expected_measurement(case: Case) -> tuple[float, set[float]]:
     """Compute the reference figure from the snapshot, at run time."""
     hub_id, metric, year = case.expect_measurement  # type: ignore[misc]
     if year == "__last_year__":
         year = str(date.today().year - 1)
-    variable, threshold, strict, _ = MEASUREMENT_METRICS[metric]
-    count = climatology.count_days(hub_id, variable, threshold, year=year, strict=strict)
+    spec = MEASUREMENT_METRICS[metric]
+    count = climatology.count_days(
+        hub_id, spec.variable, spec.threshold,
+        year=year, strict=spec.strict, direction=spec.direction,
+    )
     allowed = {
         count.percent_of_observed,
         float(count.days_matching),
         float(count.days_observed),
         round(count.percent_of_observed, 1),
+        # THE THRESHOLD ITSELF. `count_weather_days` names it in
+        # `metric_description` ("days with at least 1.0 inch of fresh snow"), so
+        # an answer that says which threshold it used is quoting the tool -- and
+        # was being failed for it. Whether the model mentions it varies by run,
+        # so this case passed and failed on identical code.
+        float(spec.threshold),
     }
     # The companion figure is legitimately quotable too.
-    other = "disruptive_snowfall" if metric == "any_snowfall" else "any_snowfall"
-    if other in MEASUREMENT_METRICS:
-        o_var, o_threshold, o_strict, _ = MEASUREMENT_METRICS[other]
+    if spec.companion:
+        o_spec = MEASUREMENT_METRICS[spec.companion]
         o_count = climatology.count_days(
-            hub_id, o_var, o_threshold, year=year, strict=o_strict
+            hub_id, o_spec.variable, o_spec.threshold,
+            year=year, strict=o_spec.strict, direction=o_spec.direction,
         )
         allowed.update(
             {
@@ -115,6 +182,7 @@ def _expected_measurement(case: Case) -> tuple[float, set[float]]:
                 round(o_count.percent_of_observed, 1),
                 float(o_count.days_matching),
                 float(o_count.days_observed),
+                float(o_spec.threshold),
             }
         )
     return count.percent_of_observed, allowed
@@ -156,11 +224,22 @@ def run_case(
         result.checks.append(checks.check_hazard(response, case.expect_hazards))
 
     if response.get("assessments"):
-        scores, orders = _independent_rankings(response, deps)
-        result.checks.append(checks.check_score_integrity(response, scores))
-        result.checks.append(checks.check_ordering(response, orders))
+        # A portfolio spans hazards in one ordering, so it is verified against
+        # `rank_portfolio` rather than against a per-hazard ranking.
+        if response.get("intent") == "portfolio":
+            scores, order = _independent_portfolio(response, deps)
+            result.checks.append(checks.check_score_integrity(response, scores))
+            result.checks.append(checks.check_portfolio_ordering(response, order))
+            result.checks.append(checks.check_tiers_are_grouped(response))
+        else:
+            scores, orders = _independent_rankings(response, deps)
+            result.checks.append(checks.check_score_integrity(response, scores))
+            result.checks.append(checks.check_ordering(response, orders))
         result.checks.append(checks.check_disclosure(response))
         result.checks.append(checks.check_sources(response))
+
+    if case.expect_year_series:
+        extra_allowed |= _allowed_year_series(case)
 
     if case.expect_measurement:
         expected, allowed = _expected_measurement(case)

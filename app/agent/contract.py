@@ -37,7 +37,25 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field, model_validator
 
-Intent = Literal["rank", "compare", "explain", "measure", "clarify", "out_of_scope"]
+Intent = Literal[
+    "rank",
+    "compare",
+    # The cross-hazard investment shortlist. It needs its own value because
+    # `rank` is per-hazard: the model has to name a hazard for it, and the
+    # question this system exists to answer -- which handful of hubs should get
+    # next year's resilience budget -- names none.
+    "portfolio",
+    "explain",
+    "measure",
+    # A question about the model itself rather than about a hub. It needs its
+    # own value because `explain` requires hub_ids: without it, "what
+    # assumptions go into the score?" had to be attached to an arbitrary hub,
+    # and the answer then described that hub's data quirks instead of the
+    # method.
+    "methodology",
+    "clarify",
+    "out_of_scope",
+]
 Hazard = Literal["winter", "hurricane", "flood"]
 
 
@@ -58,26 +76,36 @@ class AgentDraft(BaseModel):
     intent: Intent = Field(
         description=(
             "What kind of answer this question needs. 'rank' to order hubs by "
-            "risk, 'compare' for two or more named hubs, 'explain' for why one "
+            "risk for ONE named hazard, 'portfolio' for an investment or "
+            "budget-priority question across all hazards ('which hubs should we "
+            "invest in', 'where should the resilience budget go', 'our biggest "
+            "exposures') -- name no hazard for it, "
+            "'compare' for two or more named hubs, 'explain' for why one "
             "hub scores as it does, 'measure' for a direct statistic such as a "
-            "count or percentage of days, 'clarify' when the question is too "
-            "ambiguous to answer, 'out_of_scope' when it asks for a hub or "
-            "hazard this system does not cover."
+            "count or percentage of days, 'methodology' for a question about "
+            "how the score itself works -- its weights, thresholds, bands or "
+            "assumptions, 'clarify' when the question is too ambiguous to "
+            "answer, 'out_of_scope' when this system cannot cover what was "
+            "asked: an unknown hub, an unsupported hazard, an OUTCOME it does "
+            "not measure (delays, closures, cost, tonnage), a PERIOD beyond "
+            "its data, or a PRECISION its data cannot support."
         )
     )
     hub_ids: list[str] = Field(
         default_factory=list,
         description=(
             "The hub ids this question is about, exactly as the hub tools "
-            "return them. Empty for 'clarify' and 'out_of_scope', and empty "
-            "for a 'rank' over a whole region (name the region instead)."
+            "return them. Empty for 'clarify', 'out_of_scope', 'methodology' "
+            "and 'portfolio', and empty for a 'rank' over a whole region (name "
+            "the region instead)."
         ),
     )
     region: str | None = Field(
         default=None,
         description=(
-            "For a 'rank' over a region: Midwest, Northeast, South or West. "
-            "Null when ranking specific hubs or the whole network."
+            "For a 'rank' or 'portfolio' restricted to one region: Midwest, "
+            "Northeast, South or West. Null for specific hubs or the whole "
+            "network."
         ),
     )
     hazards: list[Hazard] = Field(
@@ -87,8 +115,11 @@ class AgentDraft(BaseModel):
             "flood. Usually one. Name SEVERAL when the question asks about "
             "several ('hurricane and flood exposure') or is open-ended about "
             "overall weather risk ('why is this hub risky?'), in which case "
-            "name all three. Empty only for 'clarify', 'out_of_scope', or a "
-            "'measure' that is not hazard-specific."
+            "name all three. Empty for 'clarify', 'out_of_scope', "
+            "'methodology', 'portfolio' (which always covers all three), or a "
+            "'measure' that is not hazard-specific. For a "
+            "'methodology' question about one hazard's weights, name that "
+            "hazard."
         ),
     )
     answer: str = Field(
@@ -127,7 +158,10 @@ class AgentDraft(BaseModel):
         default=None,
         description=(
             "When intent is 'out_of_scope', what was asked for that this "
-            "system does not cover. Null otherwise."
+            "system does not cover, and which limit it runs into: an unknown "
+            "hub, an unsupported hazard, an outcome this system does not "
+            "measure, a period beyond its data, or a precision its data "
+            "cannot support. Null otherwise."
         ),
     )
 
@@ -164,14 +198,28 @@ class HubAssessment:
     risk_score: float
     risk_band: str
     rank: int | None
-    # Computed by the engine so the agent never subtracts two scores itself.
-    # Carried into the response so a quoted gap is auditable against it.
-    gap_to_leader: float
-    gap_to_next: float | None
     main_drivers: tuple[str, ...]
     component_breakdown: tuple[str, ...]
     evidence: tuple[str, ...]
     active_alerts: tuple[str, ...]
+    # Computed by the engine so the agent never subtracts two scores itself.
+    # Carried into the response so a quoted gap is auditable against it.
+    #
+    # BOTH ARE None ON A PORTFOLIO ROW, and that is deliberate. The rows there
+    # span hazards, so the hub above may be scored from a different set of
+    # components -- handing the model a pre-computed difference would MANUFACTURE
+    # the cross-hazard comparison the portfolio exists to avoid making. Absent is
+    # the honest value; a 0.0 would read as "level with the leader".
+    gap_to_leader: float | None = None
+    gap_to_next: float | None = None
+    # The investment reading. Defaulted because only a portfolio response
+    # carries a tier -- a single-hazard ranking is a risk answer, and labelling
+    # its rows with an investment tier would invite the two to be read as one.
+    #
+    # `structural_score` is None when nothing structural could be measured,
+    # which is never the same as zero. See engine.HazardScore.structural_score.
+    structural_score: float | None = None
+    investability: str | None = None
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -188,6 +236,10 @@ class HubAssessment:
             "component_breakdown": list(self.component_breakdown),
             "evidence": list(self.evidence),
             "active_alerts": list(self.active_alerts),
+            # A field missing from here is invisible to the API, the UI and the
+            # evals, however correct the dataclass is.
+            "structural_score": self.structural_score,
+            "investability": self.investability,
         }
 
 

@@ -135,23 +135,36 @@ def save(snapshot: RiskSnapshot, config: AppConfig | None = None) -> Path:
     return path
 
 
-def take_snapshot(config: AppConfig | None = None) -> RiskSnapshot:
+def take_snapshot(
+    config: AppConfig | None = None,
+    alerts: dict[str, tuple[nws.Alert, ...]] | None = None,
+    forecasts: dict[str, dict[str, Any]] | None = None,
+) -> RiskSnapshot:
     """Score every hub for every hazard, from live alerts and forecasts.
 
     One alert fetch and one forecast fetch for the whole run, shared across all
     three hazards -- otherwise the three rankings could disagree about the
     current weather, and a 'change' could be an artefact of fetch ordering.
+
+    `alerts` and `forecasts` ACCEPT ALREADY-FETCHED DATA so that a caller which
+    has some can avoid fetching it twice. That matters for the agent tool: a
+    chat turn has already fetched alerts once, and fetching them again here
+    would let the tool's answer and the same turn's scores describe different
+    weather -- the exact failure that one-fetch-per-turn in `Deps` prevents.
+    Both default to fetching, so the scheduled script and the API endpoint are
+    unchanged.
     """
     config = config or load_config()
     nri = json.loads(config.nri_snapshot_path.read_text(encoding="utf-8"))
     registry = load_hubs()
 
-    alerts = nws.fetch_active_alerts(config)
+    alerts = nws.fetch_active_alerts(config) if alerts is None else alerts
     engine_alerts = nws.alerts_as_engine_input(alerts)
-    forecasts = {
-        hub_id: forecast.as_dict()
-        for hub_id, forecast in nws.fetch_forecasts(registry.hubs, config).items()
-    }
+    if forecasts is None:
+        forecasts = {
+            hub_id: forecast.as_dict()
+            for hub_id, forecast in nws.fetch_forecasts(registry.hubs, config).items()
+        }
 
     snapshot = RiskSnapshot(taken_at=datetime.now(timezone.utc).isoformat(timespec="seconds"))
     for hazard in HAZARDS:

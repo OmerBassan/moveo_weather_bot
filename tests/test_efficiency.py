@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import pathlib
+from collections.abc import Iterator
 
 import pytest
 
@@ -20,6 +21,8 @@ from app.agent import tools as tool_impl
 from app.agent.runner import HISTORY_TURNS, model_settings, trim_history, usage_limits
 from app.agent.tools import DETAIL_ROWS, Deps
 from app.hubs import load_hubs
+from app.scoring.engine import HAZARDS
+from app.tools import nws
 
 
 def approx_tokens(payload: object) -> int:
@@ -29,18 +32,52 @@ def approx_tokens(payload: object) -> int:
 
 
 @pytest.fixture(scope="module")
-def deps() -> Deps:
-    """No live alerts: these tests must not depend on today's weather, or the
-    budget would move with the storm season."""
+def deps() -> Iterator[Deps]:
+    """No live alerts and no live forecast: these tests must not depend on
+    today's weather, or the budget would move with the storm season.
+
+    THE FORECAST STUB IS NOT OPTIONAL. Omitting alerts is not enough --
+    `rank_hubs_by_risk` and `explain_hub_risk` both call
+    `Deps.ensure_forecasts`, which fetches an NWS gridpoint forecast for all
+    forty hubs. That made this budget file depend on the weather it claims to
+    exclude (live forecast text inflates the five detail rows by roughly 200
+    tokens, more in a storm) and put forty network calls inside the unit suite,
+    where one upstream 500 fails a test about token counts.
+
+    Returning `{}` leaves `deps.forecasts` empty, so `score_hub` receives
+    `forecast=None` -- the same inputs `scripts/regen_score_baseline` uses, so
+    the budget and the golden baseline describe the same payloads.
+    """
+    patch = pytest.MonkeyPatch()
+    patch.setattr(nws, "fetch_forecasts", lambda hubs, config=None: {})
     nri = json.loads(pathlib.Path("data/nri_snapshot.json").read_text(encoding="utf-8"))
-    return Deps(nri=nri, registry=load_hubs())
+    yield Deps(nri=nri, registry=load_hubs())
+    patch.undo()
 
 
 class TestPayloadBudgets:
-    def test_full_ranking_stays_under_budget(self, deps: Deps) -> None:
+    @pytest.mark.parametrize("hazard", HAZARDS)
+    def test_full_ranking_stays_under_budget(self, deps: Deps, hazard: str) -> None:
         """The 40-hub ranking is the most-called and largest payload. It cost
-        ~9,400 tokens when every row carried a full breakdown."""
-        payload = tool_impl.rank_hubs_by_risk(deps, "winter")
+        ~9,400 tokens when every row carried a full breakdown.
+
+        EVERY HAZARD, NOT JUST WINTER. This assertion ran on `winter` alone --
+        the cheapest of the three -- and so reported a comfortable margin while
+        flood sat at the ceiling. Measured with the forecast stubbed:
+
+            winter 2769    hurricane 2915    flood 3354
+
+        Flood carries the most because its baseline combines two NRI hazards
+        and nineteen hubs disclose an absent coastal component. Live forecast
+        evidence adds roughly 200 tokens on top, which puts flood within a
+        rounding error of this ceiling in production.
+
+        So the headroom here is ~150 tokens on the worst hazard, not ~700. A
+        field added to all forty rows costs ~400 and does not fit: anything
+        needing per-row data belongs in a separate tool with its own budget,
+        not bolted onto this payload.
+        """
+        payload = tool_impl.rank_hubs_by_risk(deps, hazard)
         assert approx_tokens(payload) < 3500
 
     def test_only_the_top_rows_carry_detail(self, deps: Deps) -> None:
@@ -72,6 +109,31 @@ class TestPayloadBudgets:
         hub's caveats must travel with it."""
         payload = tool_impl.explain_hub_risk(deps, "denver-co", "flood")
         assert payload["assumptions"]
+
+    def test_portfolio_stays_under_budget(self, deps: Deps) -> None:
+        """Its own ceiling rather than the ranking's, because its rows are
+        wider: each carries the driving hazards, the structural score and the
+        exceedance. Measured at 2983 with the forecast stubbed, having started
+        at 4019 before the per-hazard assumptions were moved to the response and
+        the detail rows cut from five to three."""
+        payload = tool_impl.portfolio_priorities(deps)
+        assert approx_tokens(payload) < 3500
+
+    def test_the_portfolio_still_covers_every_hub(self, deps: Deps) -> None:
+        """Trimming detail must not trim hubs: a shortlist that silently drops
+        candidates is worse than a long one."""
+        payload = tool_impl.portfolio_priorities(deps)
+        listed = sum(bucket["count"] for bucket in payload["tiers"].values())
+        rows = sum(len(bucket["hubs"]) for bucket in payload["tiers"].values())
+        assert listed == rows == 40 == payload["hub_count"]
+
+    def test_the_portfolio_does_not_repeat_assumptions_per_row(
+        self, deps: Deps
+    ) -> None:
+        payload = tool_impl.portfolio_priorities(deps)
+        assert len(payload["assumptions"]) == len(set(payload["assumptions"]))
+        for bucket in payload["tiers"].values():
+            assert not any("assumptions" in row for row in bucket["hubs"])
 
     def test_hub_listing_is_compact(self, deps: Deps) -> None:
         payload = tool_impl.list_hubs(deps)

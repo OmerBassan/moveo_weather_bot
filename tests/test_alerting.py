@@ -9,6 +9,8 @@ module implements.
 
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from app.alerting import DEFAULT_MIN_DELTA, RiskSnapshot, diff, render, webhook_payload
@@ -124,3 +126,83 @@ class TestOrderingAndOutput:
         before = snapshot("t0", miami_flood=(73.1, "High"), denver_winter=(61.5, "High"))
         after = snapshot("t1", miami_flood=(73.1, "High"), denver_winter=(61.5, "High"))
         assert diff(before, after) == []
+
+
+class TestTheAgentToolIsReadOnly:
+    """`what_changed` is reachable by the model, so its inability to advance the
+    baseline has to be a property of the code and not of the prompt."""
+
+    def test_it_never_writes_the_baseline(self, tmp_path, monkeypatch) -> None:
+        """THE FAILURE THIS PREVENTS. `save` is what makes a diff 'seen'. If the
+        tool advanced the baseline, a user asking "what changed?" twice would be
+        told "nothing" the second time, and the change they were reading about
+        would be gone from the record."""
+        from app import alerting
+        from app.agent.tools import Deps, what_changed
+        from app.hubs import load_hubs
+
+        state = tmp_path / "risk_state.json"
+        before = snapshot("t0", denver_winter=(70.0, "High"))
+        state.write_text(json.dumps(before.as_dict()), encoding="utf-8")
+
+        monkeypatch.setattr(alerting, "state_path", lambda config=None: state)
+        written: list[object] = []
+        monkeypatch.setattr(
+            alerting, "save", lambda *a, **k: written.append(a)
+        )
+        monkeypatch.setattr(
+            alerting,
+            "take_snapshot",
+            lambda *a, **k: snapshot("t1", denver_winter=(85.0, "Very High")),
+        )
+
+        deps = Deps(nri={}, registry=load_hubs())
+        deps.forecasts = {hub.id: {} for hub in deps.registry.hubs}
+        payload = what_changed(deps)
+
+        assert payload["change_count"] == 1
+        assert payload["band_crossings"] == 1
+        assert written == [], "the agent tool advanced the baseline"
+        # ...and the file on disk is untouched.
+        assert json.loads(state.read_text(encoding="utf-8")) == before.as_dict()
+
+    def test_it_exposes_no_commit_parameter(self) -> None:
+        """A flag the model can set is a flag the model can set wrongly."""
+        import inspect
+
+        from app.agent.tools import what_changed
+
+        assert "commit" not in inspect.signature(what_changed).parameters
+
+    def test_a_missing_baseline_is_not_reported_as_no_change(
+        self, monkeypatch
+    ) -> None:
+        from app import alerting
+        from app.agent.tools import Deps, what_changed
+        from app.hubs import load_hubs
+
+        monkeypatch.setattr(alerting, "load_previous", lambda *a, **k: None)
+        payload = what_changed(Deps(nri={}, registry=load_hubs()))
+        assert "no_baseline" in payload
+        assert "change_count" not in payload
+
+    def test_it_says_a_change_can_never_be_structural(self, monkeypatch) -> None:
+        """The reading that matters for an investment answer: a diff is always
+        live weather, so it cannot move a tier."""
+        from app import alerting
+        from app.agent.tools import Deps, what_changed
+        from app.hubs import load_hubs
+
+        monkeypatch.setattr(
+            alerting, "load_previous",
+            lambda *a, **k: snapshot("t0", denver_winter=(70.0, "High")),
+        )
+        monkeypatch.setattr(
+            alerting, "take_snapshot",
+            lambda *a, **k: snapshot("t1", denver_winter=(85.0, "Very High")),
+        )
+        deps = Deps(nri={}, registry=load_hubs())
+        deps.forecasts = {hub.id: {} for hub in deps.registry.hubs}
+        notes = " ".join(what_changed(deps)["assumptions"])
+        assert "investment tier" in notes
+        assert "frozen snapshots" in notes

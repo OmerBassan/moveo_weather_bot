@@ -34,9 +34,10 @@ from app.agent.prompt import SYSTEM_PROMPT
 from app.agent.tools import Deps
 from app.agent import tools as tool_impl
 from app.config import load_config
-from app.hubs import load_hubs
+from app.hubs import Hub, load_hubs
 from app.http_client import UpstreamError
-from app.scoring.engine import rank_hubs
+from app.scoring import climatology
+from app.scoring.engine import hazards_scored_by, rank_hubs, rank_portfolio
 from app.tools import nws
 
 logger = logging.getLogger(__name__)
@@ -85,11 +86,17 @@ def model_settings(model: str | None = None) -> AnthropicModelSettings:
                        thinking to re-derive what a tool already computed is
                        the definition of waste here.
 
-    cache_*            the instructions (~970 tokens) and the five tool
+    cache_*            the instructions (~1,280 tokens) and the six tool
                        schemas are byte-identical on every request, and in a
                        conversation the earlier messages are too. Caching all
                        three turns the fixed prefix from a per-request charge
-                       into a written-once one.
+                       into a written-once one -- which is what makes the
+                       instructions affordable at all: a cache read is a
+                       fraction of the input price, so prose in the PROMPT is
+                       paid for once per conversation while prose in a TOOL
+                       RESULT is paid for on every call that returns it. That
+                       asymmetry is why the tool payloads here are terse and
+                       the rules are allowed a full sentence.
 
     max_tokens         the output is a structured draft with short prose. A
                        cap stops a runaway generation costing real money.
@@ -201,6 +208,31 @@ def build_agent(model: str | None = None) -> Agent[Deps, AgentDraft]:
         return tool_impl.rank_hubs_by_risk(ctx.deps, hazard, region, hub_ids)  # type: ignore[arg-type]
 
     @agent.tool
+    def portfolio_priorities(
+        ctx: RunContext[Deps], region: str | None = None
+    ) -> dict[str, Any]:
+        """Rank the whole network across ALL THREE hazards for resilience
+        investment priority, grouped into tiers. Optionally restrict to one
+        region.
+
+        THIS is the tool for the investment question -- "which hubs should we
+        invest in", "where should the resilience budget go", "which handful
+        should we prioritise this year", "what are our biggest exposures". Use
+        it instead of calling rank_hubs_by_risk three times and merging: that
+        merge is a cross-hazard comparison you must not make, and this tool has
+        already made the only comparison that is valid.
+
+        It groups hubs by a tier computed from STRUCTURAL exposure alone -- the
+        FEMA baseline and the historical record, with live conditions excluded --
+        because a resilience upgrade acts on exposure that persists. So a hub can
+        carry a higher risk_score than one ranked above it. That is not an error:
+        report it, because it is usually the most useful thing in the answer.
+
+        Use rank_hubs_by_risk instead when the question names a single hazard."""
+        ctx.deps.tools_called.append(f"portfolio_priorities({region or 'all'})")
+        return tool_impl.portfolio_priorities(ctx.deps, region)
+
+    @agent.tool
     def explain_hub_risk(ctx: RunContext[Deps], hub_id: str, hazard: str) -> dict[str, Any]:
         """Full component-by-component breakdown of one hub's score for one
         hazard, including which component contributed most and how the hub
@@ -217,9 +249,14 @@ def build_agent(model: str | None = None) -> Agent[Deps, AgentDraft]:
         start_date: str | None = None,
         end_date: str | None = None,
     ) -> dict[str, Any]:
-        """Count days matching a named metric from the 2021-2025 record. Metrics:
-        any_snowfall, disruptive_snowfall, heavy_precipitation, damaging_wind,
-        freezing.
+        """Count days matching a named metric from the historical reanalysis
+        record, whose window is given in your instructions. Metrics:
+        any_snowfall, disruptive_snowfall, any_precipitation,
+        heavy_precipitation, damaging_wind, freezing.
+
+        Pick the one matching what was ASKED: "did it rain" is
+        any_precipitation, "heavy rain" is heavy_precipitation. Metrics with a
+        companion return both figures.
 
         Restrict the period with EITHER a four-digit year OR an inclusive
         start_date/end_date pair (YYYY-MM-DD), never both. Use the range form
@@ -233,6 +270,61 @@ def build_agent(model: str | None = None) -> Agent[Deps, AgentDraft]:
         return tool_impl.count_weather_days(
             ctx.deps, hub_id, metric, year, start_date, end_date
         )
+
+    @agent.tool
+    def year_by_year(ctx: RunContext[Deps], hub_id: str, metric: str) -> dict[str, Any]:
+        """Year-by-year counts for one hub and metric: every year in the record,
+        the worst complete year, how far that year sat above the typical one,
+        and the slope across the sample. Same metric names as
+        count_weather_days.
+
+        Use it when the question is about VARIATION BETWEEN YEARS rather than a
+        total for one period -- the worst year on record, whether something is
+        getting more frequent, how unusual a bad year was. A resilience
+        investment is sized against the bad year, and the risk score's
+        historical component reports only the multi-year average, so no other
+        tool answers this.
+
+        The partial year at the end of the record is returned but excluded from
+        the worst-year and slope figures. The slope is the direction of this
+        five-year sample, not a forecast; report it with the caveat that comes
+        back with it, and never treat it as a prediction."""
+        ctx.deps.tools_called.append(f"year_by_year({hub_id}/{metric})")
+        return tool_impl.year_by_year(ctx.deps, hub_id, metric)
+
+    @agent.tool
+    def describe_methodology(
+        ctx: RunContext[Deps], hazard: str | None = None
+    ) -> dict[str, Any]:
+        """How the score is built: component weights, baseline FEMA hazards,
+        historical anchor, forecast bounds, alert severities, band boundaries,
+        and the status of those numbers.
+
+        Use it for any question about the model rather than about a hub -- the
+        assumptions, the weights, what "High" means numerically, what the score
+        does not claim. No other tool returns these figures. Pass a hazard for
+        its numbers plus its alert events; omit it for all three."""
+        ctx.deps.tools_called.append(f"describe_methodology({hazard or 'all'})")
+        return tool_impl.describe_methodology(ctx.deps, hazard)
+
+    @agent.tool
+    def what_changed(
+        ctx: RunContext[Deps], min_delta: float | None = None
+    ) -> dict[str, Any]:
+        """What has changed since the last recorded risk review: score moves and
+        band crossings, largest first.
+
+        Use it for "what changed", "anything new since last time", "what moved".
+
+        Only the current component can move between runs -- the FEMA baseline and
+        the historical record are frozen snapshots -- so every change here is
+        live weather. It is NOT a change in structural exposure and never a
+        change in a hub's investment tier; do not describe one as if it were.
+
+        If no previous review exists the result says so, and that is different
+        from nothing having changed. Say which one it is."""
+        ctx.deps.tools_called.append("what_changed")
+        return tool_impl.what_changed(ctx.deps, min_delta)
 
     @agent.tool
     def get_hub_alerts(ctx: RunContext[Deps], hub_id: str) -> dict[str, Any]:
@@ -265,23 +357,116 @@ def build_deps(nri: dict[str, Any]) -> Deps:
     return deps
 
 
+def _label_alerts(alerts: tuple[Any, ...], hazard: str) -> tuple[str, ...]:
+    """Alert lines for a row, each saying whether it moves THIS hazard's score.
+
+    The alert feed is fetched per hub, so a winter row's alerts can include a
+    Dense Fog Advisory, which contributes to no hazard at all. Listing it
+    unlabelled next to a winter score implies it is one of the score's inputs.
+    Labelled, it stays visible -- fog matters to a driver -- without pretending
+    to be a driver of the number beside it.
+    """
+    lines = []
+    for alert in alerts:
+        scored = hazards_scored_by(alert.event)
+        if hazard in scored:
+            suffix = ""
+        elif scored:
+            suffix = f" -- scores {'/'.join(scored)}, not {hazard}"
+        else:
+            suffix = " -- not scored, operational context only"
+        lines.append(f"{alert.event} ({alert.severity}){suffix}")
+    return tuple(lines)
+
+
+def _selected_hubs(draft: AgentDraft, deps: Deps) -> tuple[Hub, ...]:
+    """The hubs an assembly covers: those named, else those in the named
+    region, else the whole network."""
+    if draft.hub_ids:
+        return tuple(
+            h for h in (deps.registry.by_id(i) for i in draft.hub_ids) if h is not None
+        )
+    if draft.region:
+        wanted = draft.region.strip().lower()
+        return tuple(h for h in deps.registry.hubs if h.region.lower() == wanted)
+    return deps.registry.hubs
+
+
 def assemble(draft: AgentDraft, deps: Deps) -> AgentResponse:
     """Join the engine's numbers onto the model's prose."""
     assessments: list[HubAssessment] = []
     assumptions: list[str] = []
     uncertainty: list[str] = list(draft.caveats)
 
-    if draft.hazards and draft.intent in ("rank", "compare", "explain"):
-        if draft.hub_ids:
-            hubs = tuple(
-                h for h in (deps.registry.by_id(i) for i in draft.hub_ids) if h is not None
-            )
-        elif draft.region:
-            wanted = draft.region.strip().lower()
-            hubs = tuple(h for h in deps.registry.hubs if h.region.lower() == wanted)
-        else:
-            hubs = deps.registry.hubs
+    hubs = _selected_hubs(draft, deps)
 
+    # A PORTFOLIO BRANCH IS MANDATORY, NOT OPTIONAL. A portfolio draft names no
+    # hazard, so it falls straight through the gate below and produces zero
+    # assessments -- which passes `check_score_integrity` and `check_disclosure`
+    # vacuously, renders nothing in the UI, and leaves every number in the prose
+    # ungrounded, because the allowed set is built from assessments.
+    if draft.intent == "portfolio":
+        # THE SHORTLIST IS THE ENGINE'S, NOT THE MODEL'S SELECTION FROM IT.
+        # `hub_ids` is ignored here even though the schema tells the model to
+        # leave it empty -- asked for "the top three", Sonnet filled it with
+        # three hubs, and honouring that would have re-ranked the portfolio over
+        # only those three. The ordering would still have been the engine's, but
+        # WHICH hubs reached the table would have been the model's, and a
+        # cherry-picked subset in the right relative order passes every ordering
+        # check we have. A region filter is honoured because it narrows the
+        # question rather than answering it.
+        hubs = (
+            tuple(
+                h
+                for h in deps.registry.hubs
+                if h.region.lower() == draft.region.strip().lower()
+            )
+            if draft.region
+            else deps.registry.hubs
+        )
+
+    if draft.intent == "portfolio" and hubs:
+        # A portfolio always reads all three hazards, so all three sources are
+        # attributed unconditionally.
+        deps.sources_used.update(
+            {
+                "FEMA National Risk Index v1.20.0 (December 2025)",
+                "NWS active alerts",
+                climatology.historical_source(),
+            }
+        )
+        entries = rank_portfolio(
+            hubs, deps.nri, deps.engine_alerts(),
+            forecasts_by_hub=deps.ensure_forecasts(hubs),
+        )
+        for position, entry in enumerate(entries, start=1):
+            lead = entry.lead
+            assessments.append(
+                HubAssessment(
+                    hub_id=entry.hub_id,
+                    hub=entry.hub_label,
+                    region=entry.region,
+                    # The hazard the score belongs to, so a reader can see which
+                    # of the driving hazards the number describes.
+                    hazard=entry.lead_hazard,
+                    risk_score=entry.score,
+                    risk_band=entry.band,
+                    rank=position,
+                    main_drivers=((lead.top_driver.name,) if lead.top_driver else ()),
+                    component_breakdown=lead.breakdown(),
+                    evidence=lead.evidence,
+                    active_alerts=_label_alerts(
+                        deps.alerts.get(entry.hub_id, ()), entry.lead_hazard
+                    ),
+                    structural_score=entry.structural_score,
+                    investability=entry.investability,
+                    # gap_to_leader and gap_to_next stay None here: see the
+                    # contract.
+                )
+            )
+            assumptions.extend(entry.assumptions)
+
+    elif draft.hazards and draft.intent in ("rank", "compare", "explain"):
         # ONE RANKING PER HAZARD. A question can legitimately span several --
         # "hurricane and flood exposure" is one of the assignment's own
         # examples, and "why is this hub risky?" spans all three. Assembling
@@ -304,7 +489,7 @@ def assemble(draft: AgentDraft, deps: Deps) -> AgentResponse:
                 }
             )
             if hazard != "hurricane":
-                deps.sources_used.add("Open-Meteo ECMWF IFS reanalysis, 2021-2025")
+                deps.sources_used.add(climatology.historical_source())
 
             ranked = rank_hubs(
                 hubs, hazard, deps.nri, deps.engine_alerts(),
@@ -333,10 +518,31 @@ def assemble(draft: AgentDraft, deps: Deps) -> AgentResponse:
                         main_drivers=((driver.name,) if driver else ()),
                         component_breakdown=result.breakdown(),
                         evidence=result.evidence,
-                        active_alerts=tuple(f"{a.event} ({a.severity})" for a in alerts),
+                        active_alerts=_label_alerts(alerts, result.hazard),
+                        # CARRIED ON A RISK ROW TOO, while `investability` is
+                        # not. The tier is an investment judgement and would
+                        # invite a ranking to be read as a shortlist; the
+                        # structural score is just a decomposition of the score
+                        # above it.
+                        #
+                        # It has to be here because `explain_hub_risk` shows it
+                        # to the model: the eval caught the agent quoting Dallas's
+                        # 99.7 with nothing in the response to audit it against.
+                        # A figure the model is shown must be a figure the
+                        # response carries.
+                        structural_score=result.structural_score,
                     )
                 )
                 assumptions.extend(result.assumptions)
+
+    # THE MEASUREMENT PATH GETS THE SAME TREATMENT AS THE SCORING PATH. The
+    # engine's assumptions are attached above because the application recomputed
+    # the scores; a count's assumptions are attached here because the
+    # application recorded them when the count was taken. Either way the
+    # disclosure does not depend on the model choosing to repeat it -- which
+    # matters most on this path, where the number is a bare percentage a reader
+    # has no way to sanity-check.
+    assumptions.extend(deps.measurement_assumptions)
 
     if deps.alerts_error:
         uncertainty.append(deps.alerts_error)

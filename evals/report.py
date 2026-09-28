@@ -10,6 +10,10 @@ CHECK_DESCRIPTIONS = {
     "score_integrity": "response scores equal an independently recomputed engine score",
     "groundedness": "every number in the prose traces to a tool result",
     "ranking_matches_engine": "the stated order matches the engine's order",
+    "portfolio_matches_engine": (
+        "the cross-hazard investment order matches the engine's"
+    ),
+    "tiers_grouped": "investment tiers appear in blocks, in order",
     "intent": "the question was routed to the right kind of answer",
     "hub_coverage": "the hubs the question was about were all assessed",
     "hazard": "the right hazard was scored",

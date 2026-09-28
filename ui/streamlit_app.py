@@ -56,6 +56,26 @@ BAND_STYLE = {
 }
 NEUTRAL = {"hex": "#7c8591", "rgb": "124,133,145", "ink": "#ffffff"}
 
+# A THIRD palette, for the same reason the region palette is separate from the
+# bands: a tier is not a severity. Reusing the band reds would say that Invest
+# means dangerous, when it means "this network's most structurally exposed
+# third" -- and would collide in a table showing both columns at once.
+TIER_STYLE = {
+    "Invest": {"rgb": "109,70,181"},
+    "Watch": {"rgb": "180,130,40"},
+    "Low": {"rgb": "124,133,145"},
+}
+
+# A SEPARATE palette for the four census regions, deliberately not reusing the
+# band colours: a colour that means "Very High" in one place must not mean
+# "South" in another. Order is the display order of the hub roster.
+REGION_STYLE = {
+    "Northeast": {"hex": "#5b6fd6", "rgb": "91,111,214"},
+    "Midwest": {"hex": "#2f9e8f", "rgb": "47,158,143"},
+    "South": {"hex": "#c2557a", "rgb": "194,85,122"},
+    "West": {"hex": "#8a6fc9", "rgb": "138,111,201"},
+}
+
 HAZARD_ICONS = {
     "winter": ":material/ac_unit:",
     "snow": ":material/ac_unit:",
@@ -129,6 +149,13 @@ st.markdown(
 .wr-usage { font-size:.7rem; opacity:.5; font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
   margin-top:.4rem; }
 .wr-understood { font-size:.82rem; opacity:.75; margin-bottom:.2rem; }
+.wr-reg { display:flex; align-items:center; gap:.4rem; margin:.55rem 0 .3rem 0;
+  font-size:.74rem; letter-spacing:.07em; text-transform:uppercase; font-weight:700; }
+.wr-reg .wr-dot { width:.62rem; height:.62rem; border-radius:50%; flex:none; }
+.wr-reg .wr-count { font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-weight:400; opacity:.6; letter-spacing:0; }
+.wr-hubchip { display:inline-block; font-size:.76rem; line-height:1.5;
+  padding:1px 8px; margin:0 4px 5px 0; border-radius:4px; }
 </style>
 """,
     unsafe_allow_html=True,
@@ -149,6 +176,15 @@ def api_get(path: str) -> dict | None:
 @st.cache_data(ttl=300, show_spinner=False)
 def api_methodology() -> dict | None:
     return api_get("/methodology")
+
+
+@st.cache_data(ttl=300, show_spinner=False)
+def api_hubs() -> list[dict]:
+    """The hub registry, for the roster. Served by the API like everything else
+    -- the UI does not read data/hubs.json, which would bypass the boundary."""
+    payload = api_get("/hubs") or {}
+    hubs = payload.get("hubs")
+    return hubs if isinstance(hubs, list) else []
 
 
 def api_chat(message: str, conversation_id: str) -> dict:
@@ -323,26 +359,51 @@ def render_scorecard(row: dict, *, compact_head: bool = False) -> None:
 
 
 def render_rank_table(rows: list[dict], multi_hazard: bool, key: str) -> None:
-    df = pd.DataFrame(
-        {
-            "Rank": [r.get("rank") for r in rows],
-            "Hub": [row_label(r, multi_hazard) for r in rows],
-            "Region": [r.get("region", "") for r in rows],
-            "Hazard": [r.get("hazard", "") for r in rows],
-            "Score": [float(r.get("risk_score") or 0) for r in rows],
-            "Band": [r.get("risk_band", "") for r in rows],
-            "Gap to #1": [r.get("gap_to_leader") for r in rows],
-            "Detail": ["yes" if has_detail(r) else "—" for r in rows],
-        }
-    )
+    # A portfolio row carries a tier and a structural score and no gap; a
+    # per-hazard ranking row is the other way round. Showing an always-empty
+    # column is worse than showing neither, so the shape follows the data.
+    investment = any(r.get("investability") is not None for r in rows)
+
+    columns: dict[str, list] = {
+        "Rank": [r.get("rank") for r in rows],
+        "Hub": [row_label(r, multi_hazard) for r in rows],
+        "Region": [r.get("region", "") for r in rows],
+        "Hazard": [r.get("hazard", "") for r in rows],
+    }
+    if investment:
+        # Before Score, because in an investment answer it is the column the
+        # ordering was actually built from -- putting the risk score first
+        # invites the reader to check the sort against the wrong number.
+        columns["Tier"] = [r.get("investability") or "—" for r in rows]
+        columns["Structural"] = [r.get("structural_score") for r in rows]
+    columns["Score"] = [float(r.get("risk_score") or 0) for r in rows]
+    columns["Band"] = [r.get("risk_band", "") for r in rows]
+    if not investment:
+        columns["Gap to #1"] = [r.get("gap_to_leader") for r in rows]
+    columns["Detail"] = ["yes" if has_detail(r) else "—" for r in rows]
+
+    df = pd.DataFrame(columns)
 
     def tint(band: str) -> str:
         s = BAND_STYLE.get(band)
         return f"background-color: rgba({s['rgb']},0.28); font-weight:600" if s else ""
 
-    styled = df.style.map(tint, subset=["Band"]).format(
-        {"Score": "{:.1f}", "Gap to #1": lambda v: "—" if pd.isna(v) else f"{v:.1f}"}
-    )
+    def tier_tint(tier: str) -> str:
+        s = TIER_STYLE.get(tier)
+        return f"background-color: rgba({s['rgb']},0.24); font-weight:600" if s else ""
+
+    # `Structural` is None for the eight hubs FEMA models no hurricane risk
+    # for, so it needs the same isna guard the gap column already has -- a bare
+    # f"{v:.1f}" raises on them.
+    formats: dict[str, object] = {"Score": "{:.1f}"}
+    if "Gap to #1" in df:
+        formats["Gap to #1"] = lambda v: "—" if pd.isna(v) else f"{v:.1f}"
+    if "Structural" in df:
+        formats["Structural"] = lambda v: "—" if pd.isna(v) else f"{v:.1f}"
+
+    styled = df.style.map(tint, subset=["Band"]).format(formats)
+    if "Tier" in df:
+        styled = styled.map(tier_tint, subset=["Tier"])
     st.dataframe(
         styled,
         hide_index=True,
@@ -356,6 +417,23 @@ def render_rank_table(rows: list[dict], multi_hazard: bool, key: str) -> None:
             ),
             "Detail": st.column_config.TextColumn(
                 width="small", help="Whether the engine returned arithmetic and evidence for this row"
+            ),
+            "Tier": st.column_config.TextColumn(
+                width="small",
+                help=(
+                    "Investment tier, from STRUCTURAL exposure only -- live "
+                    "conditions excluded. Invest = this network's top third for "
+                    "the hazard. A hub can score higher than one ranked above it."
+                ),
+            ),
+            "Structural": st.column_config.NumberColumn(
+                width="small",
+                format="%.1f",
+                help=(
+                    "Baseline and historical components only, renormalised. Does "
+                    "not move with the weather. Blank where nothing structural "
+                    "could be measured."
+                ),
             ),
         },
     )
@@ -411,6 +489,50 @@ def render_engine(payload: dict, turn_key: str) -> None:
                 render_scorecard(row)
     if any(not has_detail(r) for r in rows):
         st.caption(DETAIL_COUNT_NOTE)
+
+
+def render_hub_roster(hubs: list[dict]) -> None:
+    """The full portfolio, grouped by census region, behind one collapsed control.
+
+    The fixed hub set is the thing every score is relative to, so a reader
+    needs to be able to check what is in it -- but 40 names in the sidebar
+    would dwarf everything else there. A popover keeps the whole roster one
+    click away with the count visible, and the region grouping answers the
+    question people actually ask of it ("is my region covered, and by which
+    sites?") without a table.
+    """
+    if not hubs:
+        return
+
+    grouped: dict[str, list[str]] = {}
+    for hub in hubs:
+        grouped.setdefault(str(hub.get("region") or "Other"), []).append(
+            str(hub.get("name") or hub.get("hub_id") or "?")
+        )
+    # Known regions in palette order, then anything unexpected, alphabetically.
+    order = [r for r in REGION_STYLE if r in grouped] + sorted(
+        r for r in grouped if r not in REGION_STYLE
+    )
+
+    with st.popover(
+        f"All {len(hubs)} hubs",
+        icon=":material/pin_drop:",
+        help="The fixed portfolio every score is computed over, by region.",
+    ):
+        for region in order:
+            names = sorted(grouped[region])
+            c = REGION_STYLE.get(region, NEUTRAL)
+            st.markdown(
+                f"<div class='wr-reg' style='color:{c['hex']}'>"
+                f"<span class='wr-dot' style='background:{c['hex']}'></span>"
+                f"{esc(region)}<span class='wr-count'>{len(names)}</span></div>"
+                + "".join(
+                    f"<span class='wr-hubchip' style='background:rgba({c['rgb']},.14);"
+                    f"border:1px solid rgba({c['rgb']},.55)'>{esc(name)}</span>"
+                    for name in names
+                ),
+                unsafe_allow_html=True,
+            )
 
 
 # ----------------------------------------------- declines and clarifications --
@@ -582,6 +704,8 @@ with st.sidebar:
         st.caption(f":red[●] API unreachable at `{API_URL}`")
         st.caption("Start it with `uvicorn app.api:app --port 8000`")
 
+    render_hub_roster(api_hubs())
+
     st.markdown("**Try an example**")
     for i, (kind, icon, example) in enumerate(EXAMPLES):
         if st.button(
@@ -602,7 +726,6 @@ with st.sidebar:
         "<div style='line-height:2'>" + " ".join(band_pill(b) for b in BANDS) + "</div>",
         unsafe_allow_html=True,
     )
-    st.caption("Score 0–100 from the deterministic engine; the band is assigned by the engine too.")
 
     methodology = api_methodology()
     hazards = (methodology or {}).get("hazards") or {}
@@ -632,8 +755,6 @@ with st.sidebar:
                             )
                         },
                     )
-                if note := config.get("methodology_note"):
-                    st.caption(note)
         else:
             st.caption("Methodology unavailable — the API is not reachable.")
 
