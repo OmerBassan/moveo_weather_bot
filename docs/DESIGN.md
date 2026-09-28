@@ -329,6 +329,6 @@ the structured fields for exactly that reason.
 | | |
 |---|---|
 | Run instructions | [`README.md`](../README.md) — `docker compose up --build`, or two commands without Docker |
-| Live demo | [`docs/demo.mp4`](demo.mp4), 3 minutes, silent — stands in for a hosted URL |
+| Live demo | [`docs/demo.mp4`](demo.mp4), 3 minutes, silent — stands in for a hosted URL. Download to watch; GitHub's viewer will not stream it. |
 | Hosted deployment | [`docs/DEPLOYMENT.md`](DEPLOYMENT.md) — not deployed; the path is described end to end |
 | Full design reasoning | [`docs/architecture.md`](architecture.md) |

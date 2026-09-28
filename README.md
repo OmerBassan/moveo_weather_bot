@@ -32,7 +32,7 @@ discovered:
 | **Deployed URL** | **Not done.** The brief calls it "preferred, but not mandatory". It runs locally in one command (below) or under Docker Compose, and both paths are verified. [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) describes a hosted path end to end. |
 | **Voice** | **Not done.** Listed as a bonus. The effort went into the deterministic engine and the evaluation instead. |
 | **Scheduled / webhook alerting** | **Done** — the other bonus. See [Risk-change alerting](#risk-change-alerting-the-bonus). |
-| **Demo recording** | [`docs/demo.mp4`](docs/demo.mp4) — 3 minutes, silent. Stands in for a hosted URL. |
+| **Demo recording** | [`docs/demo.mp4`](docs/demo.mp4) — 3 minutes, silent. Stands in for a hosted URL. GitHub's file viewer will not stream it; download it to watch. |
 
 The recording covers the first five turns of a single conversation: the Midwest
 winter ranking, why Minneapolis places where it does, the two-threshold snowfall
